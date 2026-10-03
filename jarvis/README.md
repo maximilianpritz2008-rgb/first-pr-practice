@@ -15,6 +15,18 @@ Ein kleiner persönlicher KI-Assistent im Stil von JARVIS aus Iron Man – gebau
 
 Hier läuft die KI direkt auf deinem PC: kein Konto, kein API-Schlüssel, keine Kosten.
 
+### ⚡ Der einfachste Weg: Startskript
+
+Das Skript prüft, ob Python, Ollama und das KI-Modell schon da sind, installiert, was fehlt, und startet JARVIS.
+
+- **Windows:** `start_windows.bat` doppelklicken
+- **Mac:** `start_mac.command` doppelklicken (oder im Terminal: `bash start_mac.command`)
+
+Wenn das Skript sagt, du sollst es nochmal starten (nach einer Installation), einfach nochmal doppelklicken.
+Beim ersten Mal dauert es wegen des Modell-Downloads (ca. 4–5 GB) eine Weile.
+
+### Oder Schritt für Schritt von Hand
+
 1. **Ollama installieren:** <https://ollama.com/download> (Windows oder Mac) und die App starten.
 2. **Ein Modell herunterladen** (einmalig, ca. 4–5 GB). Im Terminal bzw. in der PowerShell:
    ```bash
