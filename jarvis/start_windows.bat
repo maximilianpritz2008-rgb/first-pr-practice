@@ -68,6 +68,10 @@ rem ---- 4. Python-Umgebung und Start ----
 echo [4/4] Pruefe Python-Pakete ...
 if not exist ".venv\Scripts\python.exe" python -m venv .venv
 ".venv\Scripts\python.exe" -m pip install -q --disable-pip-version-check ollama
+if "%~1"=="--voice" (
+    echo   Installiere Pakete fuer die Sprachsteuerung ...
+    ".venv\Scripts\python.exe" -m pip install -q --disable-pip-version-check SpeechRecognition pyaudio pyttsx3
+)
 echo   OK
 echo.
 

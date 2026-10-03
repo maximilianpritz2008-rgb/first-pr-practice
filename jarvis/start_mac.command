@@ -52,6 +52,10 @@ echo "  OK"
 echo "[4/4] Prüfe Python-Pakete ..."
 [ -x .venv/bin/python ] || python3 -m venv .venv
 .venv/bin/python -m pip install -q --disable-pip-version-check ollama
+if [ "$1" == "--voice" ]; then
+    echo "  Installiere Pakete für die Sprachsteuerung ..."
+    .venv/bin/python -m pip install -q --disable-pip-version-check SpeechRecognition pyaudio pyttsx3
+fi
 echo "  OK"; echo
 
 .venv/bin/python jarvis_lokal.py "$@"

@@ -44,7 +44,9 @@ OLLAMA_TOOLS = [
 def ask_jarvis(messages: list) -> str:
     """Schickt das Gespräch an das lokale Modell, führt Werkzeuge aus und gibt die Antwort zurück."""
     for _ in range(5):  # höchstens 5 Werkzeug-Runden, damit er sich nicht im Kreis dreht
+        print("   JARVIS denkt nach ...", end="", flush=True)
         response = ollama.chat(model=MODEL, messages=messages, tools=OLLAMA_TOOLS)
+        print("\r" + " " * 30 + "\r", end="", flush=True)  # Hinweis wieder löschen
         msg = response.message
         messages.append(msg)
 
@@ -53,7 +55,7 @@ def ask_jarvis(messages: list) -> str:
 
         for call in msg.tool_calls:
             name, args = call.function.name, dict(call.function.arguments or {})
-            print(f"   ⚙️  {name}({args})")
+            print(f"   >> {name}({args})")
             output, _ = run_tool(name, args)
             messages.append({"role": "tool", "content": output, "tool_name": name})
 
@@ -66,7 +68,8 @@ def main() -> None:
         from voice import listen, speak
 
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    print(f"🤖 JARVIS ist online (lokal, Modell: {MODEL}). ('exit' zum Beenden)\n")
+    print(f"JARVIS ist online (lokal, Modell: {MODEL}).")
+    print("Zum Beenden 'exit' tippen bzw. 'Tschüss' sagen.\n")
 
     while True:
         if voice_mode:
@@ -79,7 +82,7 @@ def main() -> None:
             if not user_input:
                 continue
 
-        if user_input.lower() in ("exit", "quit", "tschüss", "beenden"):
+        if any(word in user_input.lower() for word in ("exit", "quit", "tschüss", "beenden")):
             print("JARVIS: Bis später, Sir.")
             break
 
@@ -88,14 +91,14 @@ def main() -> None:
         try:
             answer = ask_jarvis(messages)
         except ConnectionError:
-            print("❌ Ollama läuft nicht. Starte die Ollama-App (oder 'ollama serve') und versuch es nochmal.")
+            print("FEHLER: Ollama läuft nicht. Starte die Ollama-App (oder 'ollama serve') und versuch es nochmal.")
             del messages[start:]
             continue
         except ollama.ResponseError as e:
             if e.status_code == 404:
-                print(f"❌ Modell '{MODEL}' fehlt. Lade es mit:  ollama pull {MODEL}")
+                print(f"FEHLER: Modell '{MODEL}' fehlt. Lade es mit:  ollama pull {MODEL}")
                 break
-            print(f"❌ Fehler von Ollama: {e.error}")
+            print(f"FEHLER von Ollama: {e.error}")
             del messages[start:]
             continue
 

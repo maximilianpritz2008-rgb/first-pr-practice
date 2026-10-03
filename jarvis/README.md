@@ -22,6 +22,9 @@ Das Skript prüft, ob Python, Ollama und das KI-Modell schon da sind, installier
 - **Windows:** `start_windows.bat` doppelklicken
 - **Mac:** `start_mac.command` doppelklicken (oder im Terminal: `bash start_mac.command`)
 
+**Mit Sprache:** `start_windows_sprache.bat` doppelklicken (Mac: `bash start_mac.command --voice`).
+Dann hört JARVIS über dein Mikrofon zu und antwortet laut. Zum Beenden „Tschüss“ sagen.
+
 Wenn das Skript sagt, du sollst es nochmal starten (nach einer Installation), einfach nochmal doppelklicken.
 Beim ersten Mal dauert es wegen des Modell-Downloads (ca. 4–5 GB) eine Weile.
 
