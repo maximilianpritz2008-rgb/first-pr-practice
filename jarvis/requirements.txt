@@ -1,0 +1,7 @@
+# Pflicht: Claude-API
+anthropic
+
+# Optional: nur für den Sprachmodus (python jarvis.py --voice)
+SpeechRecognition
+pyaudio
+pyttsx3
