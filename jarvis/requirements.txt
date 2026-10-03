@@ -1,5 +1,8 @@
-# Pflicht: Claude-API
+# Für die Claude-Version (jarvis.py)
 anthropic
+
+# Für die lokale Version (jarvis_lokal.py)
+ollama
 
 # Optional: nur für den Sprachmodus (python jarvis.py --voice)
 SpeechRecognition

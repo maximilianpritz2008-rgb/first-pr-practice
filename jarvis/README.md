@@ -11,7 +11,35 @@ Ein kleiner persönlicher KI-Assistent im Stil von JARVIS aus Iron Man – gebau
 - 📝 Notizen speichern und vorlesen
 - 🎙️ Optional: Sprachsteuerung per Mikrofon und Antworten per Lautsprecher
 
-## Einrichten
+## 🆓 Kostenlos lokal mit Ollama (empfohlen zum Ausprobieren)
+
+Hier läuft die KI direkt auf deinem PC: kein Konto, kein API-Schlüssel, keine Kosten.
+
+1. **Ollama installieren:** <https://ollama.com/download> (Windows oder Mac) und die App starten.
+2. **Ein Modell herunterladen** (einmalig, ca. 4–5 GB). Im Terminal bzw. in der PowerShell:
+   ```bash
+   ollama pull qwen2.5:7b
+   ```
+3. **Python-Paket installieren:**
+   ```bash
+   cd jarvis
+   pip install ollama
+   ```
+4. **Starten:**
+   ```bash
+   python jarvis_lokal.py
+   ```
+
+**Tipps:**
+- Antwortet er sehr langsam, ist dein PC zu schwach für das Modell. Probier ein kleineres:
+  `ollama pull qwen2.5:3b` und dann vor dem Start `set JARVIS_MODEL=qwen2.5:3b` (Windows)
+  bzw. `export JARVIS_MODEL=qwen2.5:3b` (Mac).
+- Lokale Modelle sind etwas weniger schlau als Claude und benutzen Werkzeuge manchmal falsch, das ist normal.
+- Der Sprachmodus funktioniert genauso: `python jarvis_lokal.py --voice`
+
+## Mit Claude über die API (kostet ein paar Cent pro Frage)
+
+### Einrichten
 
 1. **Python 3.10+** installieren.
 2. Abhängigkeiten installieren:
@@ -31,7 +59,7 @@ Ein kleiner persönlicher KI-Assistent im Stil von JARVIS aus Iron Man – gebau
    ⚠️ Den Schlüssel niemals in den Code schreiben oder auf GitHub hochladen!
    Die API kostet pro Anfrage ein paar Cent, also behalte dein Guthaben im Blick.
 
-## Starten
+### Starten
 
 ```bash
 python jarvis.py           # Textmodus: du tippst
@@ -44,16 +72,17 @@ Beenden mit `exit` oder „tschüss“.
 
 | Datei        | Aufgabe |
 |--------------|---------|
-| `jarvis.py`  | Das Herz: schickt das Gespräch an Claude und führt Werkzeuge aus |
+| `jarvis.py`  | Version mit Claude: schickt das Gespräch an Claude und führt Werkzeuge aus |
+| `jarvis_lokal.py` | Kostenlose Version mit Ollama (läuft auf deinem PC) |
 | `tools.py`   | Die Werkzeuge (Uhrzeit, Wetter, Webseiten, Notizen) |
 | `voice.py`   | Spracherkennung und Sprachausgabe (optional) |
 
 Der Ablauf:
 
 1. Du sagst etwas → es landet in der Liste `messages` (das Gedächtnis).
-2. Claude antwortet entweder direkt **oder** sagt „ich möchte Werkzeug X benutzen“.
+2. Die KI antwortet entweder direkt **oder** sagt „ich möchte Werkzeug X benutzen“.
 3. Im zweiten Fall führt `jarvis.py` das Werkzeug aus und schickt das Ergebnis zurück.
-4. Das wiederholt sich, bis Claude eine fertige Antwort hat.
+4. Das wiederholt sich, bis die KI eine fertige Antwort hat.
 
 ## Eigene Werkzeuge hinzufügen
 
@@ -63,7 +92,7 @@ In `tools.py`:
 2. Eine Beschreibung in die Liste `TOOLS` eintragen
 3. Die Funktion in `HANDLERS` eintragen
 
-Fertig, Claude entscheidet dann selbst, wann es das Werkzeug benutzt.
+Fertig, die KI entscheidet dann selbst, wann es das Werkzeug benutzt.
 
 ## Ideen zum Weiterbauen
 
