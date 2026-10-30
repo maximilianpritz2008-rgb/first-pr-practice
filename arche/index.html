@@ -114,7 +114,8 @@
   }
   .room .emoji { font-size: 30px; line-height: 1; }
   .room .label { font-weight: 800; font-size: 12px; text-shadow: 0 1px 0 rgba(0,0,0,0.3); }
-  .room .residents { font-size: 15px; letter-spacing: -2px; min-height: 18px; }
+  .room .residents { display: flex; justify-content: center; margin-top: 2px; }
+  .room .residents .animal { margin: 0 -3px; }
   .room.broken {
     background-color: var(--broken);
     background-image: repeating-linear-gradient(135deg, rgba(0,0,0,0.12) 0 6px, transparent 6px 14px);
@@ -279,7 +280,10 @@
     display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; text-align: left;
     background: rgba(224, 120, 158, 0.25); box-shadow: inset 0 0 0 2px rgba(224, 120, 158, 0.6);
   }
-  .animal-card .emoji { font-size: 42px; }
+  .animal-card .animal { flex: none; }
+  .rescued { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .rescued b { font: 800 22px var(--font-display); }
+  .rescued span { color: var(--muted); font-size: 14px; }
   .animal-card b { display: block; font-family: var(--font-display); font-size: 18px; }
   .animal-card span { color: var(--muted); font-size: 14px; }
   .animal-list { display: flex; flex-direction: column; gap: 10px; }
@@ -424,6 +428,7 @@
   </div>
 </div>
 
+<script src="animals.js"></script>
 <script>
 (() => {
   const SIZE = 8;
@@ -470,11 +475,11 @@
 
   // Animals rescued by winning a level for the first time, keyed by level index.
   const ANIMALS = {
-    1: { emoji: '🐇', name: 'Mondhase', text: 'Hoppelt nachts über die Brücke und klaut Socken.' },
-    3: { emoji: '🦊', name: 'Moosfuchs', text: 'Hat Moos statt Fell und riecht nach Regen.' },
-    4: { emoji: '🐌', name: 'Glühschnecke', text: 'Leuchtet, wenn sie glücklich ist. Also fast immer.' },
-    6: { emoji: '🐧', name: 'Frostpinguin', text: 'Rutscht lieber, als zu laufen. Auch in der Küche.' },
-    9: { emoji: '🦦', name: 'Eisotter', text: 'Hält beim Schlafen gern jemandem die Pfote.' },
+    1: { id: 'hase', emoji: '🐇', name: 'Mondhase', text: 'Hoppelt nachts über die Brücke und klaut Socken.' },
+    3: { id: 'fuchs', emoji: '🦊', name: 'Moosfuchs', text: 'Hat Moos statt Fell und riecht nach Regen.' },
+    4: { id: 'schnecke', emoji: '🐌', name: 'Glühschnecke', text: 'Leuchtet, wenn sie glücklich ist. Also fast immer.' },
+    6: { id: 'pinguin', emoji: '🐧', name: 'Frostpinguin', text: 'Rutscht lieber, als zu laufen. Auch in der Küche.' },
+    9: { id: 'otter', emoji: '🦦', name: 'Eisotter', text: 'Hält beim Schlafen gern jemandem die Pfote.' },
   };
 
   // Rooms: repaired with spare parts; each repair unlocks one of Grandma's letters.
@@ -737,7 +742,7 @@
       el.className = `room ${room.id}` + (fixed ? '' : ' broken') + (locked ? ' locked' : '');
       el.dataset.room = room.id;
       let extra = '';
-      if (fixed && room.id === 'animals') extra = `<span class="residents">${state.animals.map(i => ANIMALS[i].emoji).join('')}</span>`;
+      if (fixed && room.id === 'animals') extra = `<span class="residents">${state.animals.map(i => ArcheAnimals.html(ANIMALS[i].id, 30)).join('')}</span>`;
       else if (!fixed) extra = `<span class="cost">${locked ? '🔒 ' + PLANETS[room.planet].name : '🔧 ⚙️ ' + room.cost}</span>`;
       el.innerHTML = `<span class="emoji">${room.emoji}</span><span class="label">${room.name}</span>${extra}`;
       el.setAttribute('aria-label', `${room.name}${fixed ? ', repariert' : locked ? ', gesperrt' : `, kaputt, kostet ${room.cost} Ersatzteile`}`);
@@ -832,8 +837,13 @@
       const a = ANIMALS[i];
       const card = document.createElement('div');
       card.className = 'animal-card';
-      card.innerHTML = `<span class="emoji">${a.emoji}</span><div><b>${a.name}</b><span>${a.text}</span></div>`;
-      card.addEventListener('click', () => { sfx.pet(); const [x, y] = centerOf(card.firstChild); hearts(x, y); });
+      card.innerHTML = `${ArcheAnimals.html(a.id, 72)}<div><b>${a.name}</b><span>${a.text}</span></div>`;
+      card.addEventListener('click', () => {
+        sfx.pet();
+        ArcheAnimals.cheer(card.firstChild);
+        const [x, y] = centerOf(card.firstChild);
+        hearts(x, y - 20);
+      });
       list.appendChild(card);
     }
     showDialog('dlg-animals');
@@ -1169,13 +1179,15 @@
     [...$('win-stars').children].forEach((s, i) => s.classList.toggle('on', i < stars));
     $('win-parts').textContent = `+${parts} ⚙️ Ersatzteile`;
     $('win-animal').innerHTML = animal
-      ? `<div class="animal-card"><span class="emoji">${animal.emoji}</span><div><b>${animal.name} gerettet!</b><span>${animal.text}</span></div></div>`
+      ? `<div class="rescued">${ArcheAnimals.html(animal.id, 120)}<b>${animal.name} gerettet!</b><span>${animal.text}</span></div>`
       : '';
     setTimeout(() => {
       sfx.win();
       for (let i = 0; i < stars; i++) setTimeout(() => sfx.star(i), 600 + i * 250);
       confetti();
       showDialog('dlg-win');
+      const rescued = document.querySelector('#win-animal .animal');
+      if (rescued) setTimeout(() => ArcheAnimals.cheer(rescued), 500);
     }, 400);
   }
 
