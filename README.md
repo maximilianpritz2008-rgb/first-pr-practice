@@ -10,9 +10,11 @@ A minimal repo to try out the workflow: branch, commit, push, open PR, merge.
 
 `game/index.html` is a small block puzzle game: drag the three pieces onto the 8×8 board and fill complete rows or columns to clear them. It is a single HTML file with no dependencies, so open it in any browser to play.
 
+The background is an animated evening landscape (stars, moon, hills, fireflies) drawn on a canvas.
+
 Screens: a title screen, a main menu, a level map, stats, settings, and a pause menu during play.
 
-Modes: a daily challenge (same board for everyone each day, with a day streak), endless, and 10 levels with stone blocks, line goals and star ratings. Sound effects and background music are synthesised and can be toggled separately; particle effects can be toned down in the settings.
+Modes: a daily challenge (same board for everyone each day, with a day streak), endless, and 10 levels with star ratings. In levels with bushes the goal is to clear every bush by completing its row or column; thorny bushes need two clears. Sound effects and background music are synthesised and can be toggled separately; particle effects can be toned down in the settings.
 
 The dealer picks each hand in one of four ways: pure chance; a fair hand where all three pieces fit (always for the first three hands, more often on a crowded board); a hard hand (the worst of several samples), which gets more likely the longer a round lasts, so every round ends eventually; or, during a luck boost, the best of 25 sampled hands. Players earn a luck boost (3 hands) or rescue a lost round up to twice (clears the middle rows plus 2 lucky hands) by watching a rewarded ad, which is a placeholder for now. After 20 minutes of play the game suggests a break.
 
