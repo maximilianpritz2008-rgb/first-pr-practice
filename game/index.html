@@ -10,6 +10,7 @@
     --bg-2: #2d0f4a;
     --bg-3: #0f2a55;
     --panel: rgba(42, 28, 82, 0.85);
+    --panel-solid: #2a1c52;
     --cell: #34265f;
     --cell-line: #46377a;
     --text: #fbf7ff;
@@ -17,6 +18,7 @@
     --accent: #ffd60a;
     --stone: #7a6fa3;
     --button: #5b47a8;
+    --danger: #ff4d6d;
     --ghost-ok: rgba(255, 255, 255, 0.4);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -24,7 +26,7 @@
     margin: 0; height: 100%;
     background: var(--bg); color: var(--text);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    overscroll-behavior: none; touch-action: none; user-select: none;
+    overscroll-behavior: none; user-select: none;
   }
   body {
     background: linear-gradient(135deg, var(--bg), var(--bg-2), var(--bg-3), var(--bg));
@@ -35,24 +37,130 @@
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
   }
-  #app {
+  #bg { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+
+  /* ---------- Screens ---------- */
+  .screen {
+    position: relative; z-index: 1;
     max-width: 480px; margin: 0 auto; padding: 16px;
-    display: flex; flex-direction: column; align-items: center; gap: 12px;
     min-height: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
   }
-  header { width: 100%; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
-  .title-row { display: flex; align-items: center; gap: 6px; }
-  h1 {
-    margin: 0 0 0 4px; font-size: 20px; letter-spacing: 0.5px;
+  .screen.enter { animation: screen-in 0.3s ease-out; }
+  @keyframes screen-in { from { opacity: 0; transform: translateY(16px); } }
+  .topbar { width: 100%; display: flex; align-items: center; gap: 10px; }
+  .topbar h2 { margin: 0; font-size: 22px; flex: 1; }
+  .icon-btn {
+    width: 40px; height: 40px; margin: 0; padding: 0; border-radius: 12px; flex: none;
+    background: var(--panel); color: var(--text); font-size: 18px;
+  }
+
+  /* Title screen */
+  #screen-title { justify-content: center; gap: 28px; }
+  .logo { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .logo-row { display: flex; gap: 6px; }
+  .logo-tile {
+    width: clamp(44px, 14vw, 62px); height: clamp(44px, 14vw, 62px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(26px, 8.5vw, 38px); font-weight: 900; color: #fff;
+    border-radius: 12px; text-shadow: 0 2px 0 rgba(0,0,0,0.25);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0) 55%);
+    box-shadow: inset 0 -5px 0 rgba(0,0,0,0.25), inset 0 3px 0 rgba(255,255,255,0.45), 0 6px 18px rgba(0,0,0,0.3);
+    animation: tile-drop 0.6s cubic-bezier(.3,1.6,.6,1) backwards, tile-bob 3s ease-in-out infinite;
+  }
+  @keyframes tile-drop { from { transform: translateY(-120vh) rotate(-20deg); } }
+  @keyframes tile-bob { 50% { transform: translateY(-5px); } }
+  .logo-sub {
+    font-size: clamp(22px, 7vw, 30px); font-weight: 900; letter-spacing: 8px;
+    background: linear-gradient(90deg, #ff4d6d, #ffd60a, #38e54d, #00c2ff, #c86bff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: fade-in 0.6s 0.9s ease-out backwards;
+  }
+  @keyframes fade-in { from { opacity: 0; transform: scale(0.8); } }
+  .title-actions { width: min(300px, 100%); display: flex; flex-direction: column; gap: 12px; animation: fade-in 0.5s 1.1s backwards; }
+  .play-btn { font-size: 22px; padding: 18px; animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 214, 10, 0.6); } }
+  .pill {
+    align-self: center; padding: 6px 14px; border-radius: 999px; background: var(--panel);
+    font-size: 14px; font-weight: 700;
+  }
+
+  /* Home screen */
+  .home-title {
+    margin: 4px 0 0; font-size: 26px; font-weight: 900; text-align: center;
     background: linear-gradient(90deg, #ff4d6d, #ffd60a, #38e54d, #00c2ff, #c86bff);
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  .icon-btn {
-    width: 34px; height: 34px; margin: 0; padding: 0; border-radius: 10px;
-    background: var(--panel); color: var(--text); font-size: 16px;
+  .mode-card {
+    width: 100%; margin: 0; padding: 18px; border-radius: 18px; text-align: left;
+    display: flex; align-items: center; gap: 14px; color: #fff;
+    box-shadow: inset 0 -5px 0 rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.25);
+    transition: transform 0.15s;
   }
-  .icon-btn.off { opacity: 0.45; }
-  #status { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .mode-card:active { transform: scale(0.97); }
+  .mode-card .emoji { font-size: 36px; flex: none; }
+  .mode-card .txt { flex: 1; min-width: 0; }
+  .mode-card .name { font-size: 20px; font-weight: 900; display: block; text-shadow: 0 1px 0 rgba(0,0,0,0.25); }
+  .mode-card .info { font-size: 13px; font-weight: 600; opacity: 0.92; display: block; margin-top: 3px; }
+  .card-daily { background: linear-gradient(135deg, #ff4d6d, #ff9f1c); }
+  .card-endless { background: linear-gradient(135deg, #00a6ff, #8f5bff); }
+  .card-levels { background: linear-gradient(135deg, #1fbf5a, #00b3a4); }
+  .home-nav { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: auto; }
+  .home-nav button { margin: 0; }
+
+  /* Level map */
+  .map { width: 100%; display: flex; flex-direction: column-reverse; gap: 14px; padding: 8px 0 24px; position: relative; }
+  .map::before {
+    content: ""; position: absolute; left: 50%; top: 20px; bottom: 40px; width: 6px; margin-left: -3px;
+    background: repeating-linear-gradient(180deg, var(--muted) 0 10px, transparent 10px 20px); opacity: 0.35;
+  }
+  .map-row { display: flex; position: relative; }
+  .map-row:nth-child(4n+1) { justify-content: center; }
+  .map-row:nth-child(4n+2) { justify-content: flex-start; padding-left: 12%; }
+  .map-row:nth-child(4n+3) { justify-content: center; }
+  .map-row:nth-child(4n+4) { justify-content: flex-end; padding-right: 12%; }
+  .level-node {
+    width: 76px; height: 76px; margin: 0; padding: 0; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 900; color: #fff;
+    background: linear-gradient(180deg, #9b7bff, #5b47a8);
+    box-shadow: inset 0 -5px 0 rgba(0,0,0,0.25), 0 6px 16px rgba(0,0,0,0.35);
+  }
+  .level-node small { font-size: 12px; letter-spacing: -1px; color: var(--accent); }
+  .level-node.done { background: linear-gradient(180deg, #ffd60a, #ff9f1c); color: #4a2a00; }
+  .level-node.done small { color: #7a3d00; }
+  .level-node.current { animation: pulse 1.6s ease-in-out infinite; background: linear-gradient(180deg, #38e54d, #1f9e3a); }
+  .level-node:disabled { background: #3a2f63; color: #6d6491; cursor: default; }
+  .stars-total { font-weight: 800; color: var(--accent); }
+
+  /* Stats & settings */
+  .list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+  .row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 16px; border-radius: 14px; background: var(--panel);
+  }
+  .row .label { color: var(--muted); }
+  .row .value { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .toggle {
+    width: 54px; height: 32px; margin: 0; padding: 0; border-radius: 999px; flex: none; position: relative;
+    background: #4b3f78;
+  }
+  .toggle::after {
+    content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%;
+    background: #fff; transition: transform 0.2s;
+  }
+  .toggle[aria-checked="true"] { background: #38e54d; }
+  .toggle[aria-checked="true"]::after { transform: translateX(22px); }
+  .danger { background: var(--danger); color: #fff; }
+  .confirm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .confirm-row button { margin: 0; }
+
+  /* ---------- Game screen ---------- */
+  /* No scrolling or zooming while dragging pieces; menu screens stay scrollable. */
+  #screen-game { touch-action: none; }
+  header { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .hud-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  #status { font-size: 14px; color: var(--muted); font-weight: 600; }
   .scores { text-align: right; }
   .score { font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1; text-shadow: 0 0 18px rgba(255, 214, 10, 0.5); }
   .score.bump { animation: bump 0.3s ease-out; }
@@ -126,47 +234,6 @@
     20% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
     100% { opacity: 0; transform: translate(-50%, -160%) scale(1); }
   }
-  #toast {
-    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 40;
-    background: var(--panel); color: var(--text); padding: 12px 18px; border-radius: 12px;
-    width: max-content; max-width: calc(100vw - 32px); text-align: center; font-size: 14px;
-  }
-  #overlay {
-    position: fixed; inset: 0; background: rgba(10, 6, 25, 0.8);
-    display: none; align-items: center; justify-content: center; z-index: 20;
-  }
-  #overlay.show { display: flex; }
-  .dialog {
-    background: #2a1c52; padding: 26px 22px; border-radius: 18px; text-align: center;
-    width: min(340px, calc(100vw - 32px)); max-height: calc(100% - 32px); overflow-y: auto;
-    box-shadow: 0 0 50px rgba(140, 90, 255, 0.4);
-  }
-  .dialog h2 { margin: 0 0 8px; }
-  .dialog p { color: var(--muted); margin: 6px 0 16px; }
-  .section-label { margin: 18px 0 0; color: var(--muted); }
-  button {
-    display: block; width: 100%; margin-top: 10px; padding: 14px; border: 0; border-radius: 12px;
-    font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
-  }
-  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .primary { background: var(--accent); color: #2a1d00; }
-  .secondary { background: var(--button); color: var(--text); }
-  .daily {
-    background: linear-gradient(135deg, #ff4d6d, #ff9f1c); color: #fff;
-    text-shadow: 0 1px 0 rgba(0,0,0,0.25);
-  }
-  button small { display: block; font-weight: 500; font-size: 12px; opacity: 0.85; margin-top: 2px; }
-  .level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; }
-  .level-grid button { margin: 0; padding: 8px 0 6px; line-height: 1.1; }
-  .level-grid button small { font-size: 10px; letter-spacing: -1px; color: var(--accent); opacity: 1; }
-  .level-grid button:disabled { opacity: 0.35; cursor: default; }
-  .stars { font-size: 40px; letter-spacing: 6px; margin: 4px 0 6px; }
-  .stars span { display: inline-block; color: #4b3f78; }
-  .stars span.on { color: var(--accent); text-shadow: 0 0 16px rgba(255, 214, 10, 0.8); animation: star-in 0.5s ease-out backwards; }
-  .stars span:nth-child(2).on { animation-delay: 0.25s; }
-  .stars span:nth-child(3).on { animation-delay: 0.5s; }
-  @keyframes star-in { from { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.4); } }
-  #win-streak { color: #ffb347; font-weight: 700; }
   #btn-luck {
     width: auto; margin: 0; padding: 10px 18px; border-radius: 999px; font-size: 14px;
     background: linear-gradient(135deg, #38e54d, #00c2ff); color: #062a12;
@@ -174,6 +241,41 @@
   #btn-luck:disabled { background: var(--panel); color: var(--muted); cursor: default; }
   #btn-luck.active { animation: glow 1.4s ease-in-out infinite; }
   @keyframes glow { 50% { box-shadow: 0 0 22px rgba(56, 229, 77, 0.8); } }
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 40;
+    background: var(--panel-solid); color: var(--text); padding: 12px 18px; border-radius: 12px;
+    width: max-content; max-width: calc(100vw - 32px); text-align: center; font-size: 14px;
+  }
+
+  /* ---------- Dialogs ---------- */
+  #overlay {
+    position: fixed; inset: 0; background: rgba(10, 6, 25, 0.8);
+    display: none; align-items: center; justify-content: center; z-index: 20;
+  }
+  #overlay.show { display: flex; }
+  .dialog {
+    background: var(--panel-solid); padding: 26px 22px; border-radius: 18px; text-align: center;
+    width: min(340px, calc(100vw - 32px)); max-height: calc(100% - 32px); overflow-y: auto;
+    box-shadow: 0 0 50px rgba(140, 90, 255, 0.4); animation: fade-in 0.25s ease-out;
+  }
+  .dialog h2 { margin: 0 0 8px; }
+  .dialog p { color: var(--muted); margin: 6px 0 16px; }
+  button {
+    display: block; width: 100%; margin-top: 10px; padding: 14px; border: 0; border-radius: 12px;
+    font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .primary { background: var(--accent); color: #2a1d00; }
+  .secondary { background: var(--button); color: var(--text); }
+  .rescue { background: linear-gradient(135deg, #38e54d, #00c2ff); color: #062a12; animation: pulse 1.6s ease-in-out infinite; }
+  button small { display: block; font-weight: 500; font-size: 12px; opacity: 0.85; margin-top: 2px; }
+  .stars { font-size: 40px; letter-spacing: 6px; margin: 4px 0 6px; }
+  .stars span { display: inline-block; color: #4b3f78; }
+  .stars span.on { color: var(--accent); text-shadow: 0 0 16px rgba(255, 214, 10, 0.8); animation: star-in 0.5s ease-out backwards; }
+  .stars span:nth-child(2).on { animation-delay: 0.25s; }
+  .stars span:nth-child(3).on { animation-delay: 0.5s; }
+  @keyframes star-in { from { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.4); } }
+  #win-streak { color: #ffb347; font-weight: 700; }
   .ad-box {
     margin: 4px 0 14px; padding: 36px 12px; border-radius: 12px; font-weight: 700;
     background: repeating-linear-gradient(45deg, #3a2a6e, #3a2a6e 12px, #33245f 12px, #33245f 24px);
@@ -182,20 +284,91 @@
   #ad-count { font-size: 40px; color: var(--text); display: block; margin-top: 6px; }
   [hidden] { display: none !important; }
   @media (prefers-reduced-motion: reduce) {
-    body, #combo, .piece { animation: none; }
+    body, #combo, .piece, .logo-tile, .play-btn, .rescue, .level-node.current { animation: none; }
   }
 </style>
 </head>
 <body>
-<div id="app">
-  <header>
-    <div>
-      <div class="title-row">
-        <button class="icon-btn" id="btn-menu" aria-label="Menü">☰</button>
-        <button class="icon-btn" id="btn-sound" aria-label="Soundeffekte an/aus">🔊</button>
-        <button class="icon-btn" id="btn-music" aria-label="Musik an/aus">🎵</button>
-        <h1>Klotz Kaskade</h1>
+<canvas id="bg"></canvas>
+
+<!-- Title screen -->
+<div class="screen" id="screen-title">
+  <div class="logo" aria-label="Klotz Kaskade">
+    <div class="logo-row" id="logo-row"></div>
+    <div class="logo-sub">KASKADE</div>
+  </div>
+  <div class="title-actions">
+    <button class="primary play-btn" id="btn-play">Spielen</button>
+    <div class="pill" id="title-streak" hidden></div>
+  </div>
+</div>
+
+<!-- Home / main menu -->
+<div class="screen" id="screen-home" hidden>
+  <div class="home-title">Klotz Kaskade</div>
+  <button class="mode-card card-daily" id="btn-daily">
+    <span class="emoji">☀️</span>
+    <span class="txt"><span class="name">Tages-Challenge</span><span class="info" id="daily-info"></span></span>
+  </button>
+  <button class="mode-card card-endless" id="btn-endless">
+    <span class="emoji">♾️</span>
+    <span class="txt"><span class="name">Endlos</span><span class="info" id="endless-info"></span></span>
+  </button>
+  <button class="mode-card card-levels" id="btn-levels">
+    <span class="emoji">🗺️</span>
+    <span class="txt"><span class="name">Level</span><span class="info" id="levels-info"></span></span>
+  </button>
+  <div class="home-nav">
+    <button class="secondary" id="btn-stats">📊 Statistik</button>
+    <button class="secondary" id="btn-settings">⚙️ Einstellungen</button>
+  </div>
+</div>
+
+<!-- Level map -->
+<div class="screen" id="screen-levels" hidden>
+  <div class="topbar">
+    <button class="icon-btn" data-back="screen-home" aria-label="Zurück">←</button>
+    <h2>Level</h2>
+    <span class="stars-total" id="stars-total"></span>
+  </div>
+  <div class="map" id="level-map"></div>
+</div>
+
+<!-- Stats -->
+<div class="screen" id="screen-stats" hidden>
+  <div class="topbar">
+    <button class="icon-btn" data-back="screen-home" aria-label="Zurück">←</button>
+    <h2>Statistik</h2>
+  </div>
+  <div class="list" id="stats-list"></div>
+</div>
+
+<!-- Settings -->
+<div class="screen" id="screen-settings" hidden>
+  <div class="topbar">
+    <button class="icon-btn" data-back="screen-home" aria-label="Zurück">←</button>
+    <h2>Einstellungen</h2>
+  </div>
+  <div class="list">
+    <div class="row"><span>Soundeffekte</span><button class="toggle" id="set-sound" role="switch" aria-label="Soundeffekte"></button></div>
+    <div class="row"><span>Musik</span><button class="toggle" id="set-music" role="switch" aria-label="Musik"></button></div>
+    <div class="row"><span>Weniger Effekte</span><button class="toggle" id="set-calm" role="switch" aria-label="Weniger Effekte"></button></div>
+    <button class="secondary" id="btn-reset">Fortschritt löschen</button>
+    <div id="reset-confirm" hidden>
+      <p style="color: var(--muted); text-align: center; margin: 4px 0 10px">Rekord, Sterne, Level und Serie werden gelöscht.</p>
+      <div class="confirm-row">
+        <button class="danger" id="btn-reset-yes">Ja, löschen</button>
+        <button class="secondary" id="btn-reset-no">Abbrechen</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Game -->
+<div class="screen" id="screen-game" hidden>
+  <header>
+    <div class="hud-left">
+      <button class="icon-btn" id="btn-pause" aria-label="Pause">⏸</button>
       <div id="status"></div>
     </div>
     <div class="scores">
@@ -209,24 +382,25 @@
   <div id="tray"></div>
   <button id="btn-luck">🍀 Bessere Steine · Werbung ansehen</button>
 </div>
+
 <div id="drag"></div>
 <canvas id="fx"></canvas>
 <div id="toast" hidden></div>
 <div id="overlay">
-  <div class="dialog" id="dlg-menu">
-    <h2>Klotz Kaskade</h2>
-    <p>Zieh die Formen aufs Feld. Volle Reihen und Spalten verschwinden.</p>
-    <button class="daily" id="btn-daily">Tages-Challenge<small id="daily-info"></small></button>
-    <button class="primary" id="btn-endless">Endlos spielen</button>
-    <p class="section-label">Level</p>
-    <div class="level-grid" id="level-grid"></div>
+  <div class="dialog" id="dlg-pause" hidden>
+    <h2>Pause</h2>
+    <button class="primary" id="btn-resume">Weiterspielen</button>
+    <button class="secondary" id="btn-pause-sound"></button>
+    <button class="secondary" id="btn-pause-music"></button>
+    <button class="secondary" id="btn-restart">Neu starten</button>
+    <button class="secondary" id="btn-pause-home">Hauptmenü</button>
   </div>
   <div class="dialog" id="dlg-over" hidden>
     <h2>Kein Platz mehr!</h2>
     <p id="over-text"></p>
-    <button class="primary" id="btn-revive">Zweite Chance<small>Werbung ansehen · Feld wird frei + 🍀 2 Runden Glück</small></button>
+    <button class="rescue" id="btn-revive">Spiel retten<small id="revive-info"></small></button>
     <button class="secondary" id="btn-retry">Nochmal</button>
-    <button class="secondary" id="btn-over-menu">Menü</button>
+    <button class="secondary" id="btn-over-home">Hauptmenü</button>
   </div>
   <div class="dialog" id="dlg-win" hidden>
     <h2 id="win-title">Level geschafft!</h2>
@@ -235,7 +409,7 @@
     <p id="win-streak" hidden></p>
     <button class="primary" id="btn-next">Nächstes Level</button>
     <button class="secondary" id="btn-win-retry">Nochmal für mehr Sterne</button>
-    <button class="secondary" id="btn-win-menu">Menü</button>
+    <button class="secondary" id="btn-win-home">Hauptmenü</button>
   </div>
   <div class="dialog" id="dlg-ad" hidden>
     <h2>Werbung</h2>
@@ -250,8 +424,8 @@
   const SIZE = 8;
   const COLORS = ['#ff4d6d', '#ff9f1c', '#ffd60a', '#38e54d', '#00c2ff', '#8f5bff', '#ff4fd8'];
   const STONE = getComputedStyle(document.documentElement).getPropertyValue('--stone').trim();
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const DAILY_LINES = 10;
+  const MAX_RESCUES = 2;
   const BREAK_AFTER_MS = 20 * 60 * 1000;
 
   // Shapes as lists of [row, col]; weight controls how often a shape appears.
@@ -302,7 +476,7 @@
   const overlay = $('overlay');
 
   // mode: 'endless', 'level' or 'daily'; level: index into LEVELS
-  let grid, pieces, score, combo, best, revived, busy, mode, level, lines, over;
+  let grid, pieces, score, combo, best, rescues, busy, mode, level, lines, over;
   let rand = Math.random;
   let luckyHands = 0, handsDealt = 0, luckReadyAt = 0;
   let justPlaced = new Set();
@@ -314,6 +488,10 @@
   function save(key, value) {
     try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
   }
+  const STORAGE_KEYS = ['klotz-best', 'klotz-unlocked', 'klotz-stars', 'klotz-daily', 'klotz-stats', 'klotz-ads-watched'];
+
+  let calm = load('klotz-calm', false);
+  const reducedMotion = () => calm || matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---------- Dates & seeded randomness for the daily challenge ----------
   function dateKey(d) {
@@ -342,6 +520,13 @@
     // A streak only counts while the last completed day is today or yesterday.
     const alive = d.last === todayKey() || d.last === yesterdayKey();
     return { ...d, streak: alive ? d.streak : 0 };
+  }
+
+  const loadStats = () => ({ games: 0, lines: 0, bestStreak: 0, ...load('klotz-stats', {}) });
+  function addStats(change) {
+    const s = loadStats();
+    for (const [k, v] of Object.entries(change)) s[k] = (s[k] || 0) + v;
+    save('klotz-stats', s);
   }
 
   // ---------- Sound (synthesised with Web Audio, no files needed) ----------
@@ -428,10 +613,8 @@
     if (!musicOn && musicTimer) { clearInterval(musicTimer); musicTimer = null; }
   }
 
-  function renderAudioButtons() {
-    $('btn-sound').textContent = muted ? '🔇' : '🔊';
-    $('btn-music').classList.toggle('off', !musicOn);
-  }
+  function setMuted(value) { muted = value; save('klotz-muted', muted); renderSettings(); }
+  function setMusic(value) { musicOn = value; save('klotz-music', musicOn); updateMusic(); renderSettings(); }
 
   // Browsers only allow audio after the first tap, so start it then.
   window.addEventListener('pointerdown', () => { getAudio(); updateMusic(); }, { once: true });
@@ -440,23 +623,161 @@
     if (document.hidden) audio.suspend(); else audio.resume();
   });
 
+  // ---------- Screens ----------
+  const SCREENS = ['screen-title', 'screen-home', 'screen-levels', 'screen-stats', 'screen-settings', 'screen-game'];
+  let currentScreen = 'screen-title';
+
+  function showScreen(id) {
+    overlay.classList.remove('show');
+    for (const s of SCREENS) $(s).hidden = s !== id;
+    const el = $(id);
+    el.classList.remove('enter');
+    void el.offsetWidth;
+    el.classList.add('enter');
+    currentScreen = id;
+    if (id === 'screen-home') renderHome();
+    if (id === 'screen-levels') renderLevelMap();
+    if (id === 'screen-stats') renderStats();
+    if (id === 'screen-settings') { $('reset-confirm').hidden = true; renderSettings(); }
+    updateBackground();
+  }
+
+  function buildLogo() {
+    const row = $('logo-row');
+    [...'KLOTZ'].forEach((ch, i) => {
+      const t = document.createElement('div');
+      t.className = 'logo-tile';
+      t.textContent = ch;
+      t.style.backgroundColor = COLORS[i];
+      t.style.animationDelay = `${i * 0.12}s, ${0.8 + i * 0.2}s`;
+      row.appendChild(t);
+    });
+  }
+
+  function renderTitle() {
+    const d = dailyState();
+    $('title-streak').hidden = d.streak === 0;
+    $('title-streak').textContent = `🔥 ${d.streak} ${d.streak === 1 ? 'Tag' : 'Tage'} Serie`;
+  }
+
+  const totalStars = () => Object.values(load('klotz-stars', {})).reduce((a, b) => a + b, 0);
+
+  function renderHome() {
+    const d = dailyState();
+    const doneToday = d.last === todayKey();
+    const todayStars = d.stars?.[todayKey()] || 0;
+    const streakText = `🔥 ${d.streak} ${d.streak === 1 ? 'Tag' : 'Tage'}`;
+    $('daily-info').textContent = doneToday
+      ? `Heute geschafft ${'★'.repeat(todayStars)}${'☆'.repeat(3 - todayStars)} · ${streakText}`
+      : d.streak > 0 ? `Neues Feld wartet · ${streakText} Serie` : 'Jeden Tag ein neues Feld';
+    $('endless-info').textContent = `Rekord: ${load('klotz-best', 0)} Punkte`;
+    const unlocked = load('klotz-unlocked', 1);
+    $('levels-info').textContent = `${Math.min(unlocked, LEVELS.length)} von ${LEVELS.length} offen · ★ ${totalStars()} von ${LEVELS.length * 3}`;
+  }
+
+  function renderLevelMap() {
+    const unlocked = load('klotz-unlocked', 1);
+    const allStars = load('klotz-stars', {});
+    $('stars-total').textContent = `★ ${totalStars()}/${LEVELS.length * 3}`;
+    const map = $('level-map');
+    map.innerHTML = '';
+    LEVELS.forEach((lv, i) => {
+      const row = document.createElement('div');
+      row.className = 'map-row';
+      const b = document.createElement('button');
+      const s = allStars[i] || 0;
+      b.className = 'level-node' + (s ? ' done' : '') + (!s && i + 1 === unlocked ? ' current' : '');
+      b.disabled = i + 1 > unlocked;
+      b.innerHTML = b.disabled ? '🔒' : `${i + 1}<small>${s ? '★'.repeat(s) + '☆'.repeat(3 - s) : lv.lines + ' Linien'}</small>`;
+      b.setAttribute('aria-label', `Level ${i + 1}${b.disabled ? ', gesperrt' : s ? `, ${s} Sterne` : ''}`);
+      b.addEventListener('click', () => { sfx.click(); startGame('level', i); });
+      row.appendChild(b);
+      map.appendChild(row);
+    });
+    const focus = map.querySelector('.current') || map.querySelector('.level-node:not(:disabled)');
+    if (focus) requestAnimationFrame(() => focus.scrollIntoView({ block: 'center' }));
+  }
+
+  function renderStats() {
+    const s = loadStats();
+    const d = dailyState();
+    const rows = [
+      ['Rekord (Endlos)', load('klotz-best', 0)],
+      ['Gespielte Runden', s.games],
+      ['Abgeräumte Linien', s.lines],
+      ['Sterne', `${totalStars()} / ${LEVELS.length * 3}`],
+      ['Aktuelle Serie', `${d.streak} ${d.streak === 1 ? 'Tag' : 'Tage'}`],
+      ['Längste Serie', `${Math.max(s.bestStreak, d.streak)} ${Math.max(s.bestStreak, d.streak) === 1 ? 'Tag' : 'Tage'}`],
+      ['Werbungen angesehen', load('klotz-ads-watched', 0)],
+    ];
+    $('stats-list').innerHTML = rows.map(([label, value]) =>
+      `<div class="row"><span class="label">${label}</span><span class="value">${value}</span></div>`).join('');
+  }
+
+  function renderSettings() {
+    $('set-sound').setAttribute('aria-checked', String(!muted));
+    $('set-music').setAttribute('aria-checked', String(musicOn));
+    $('set-calm').setAttribute('aria-checked', String(calm));
+    $('btn-pause-sound').textContent = muted ? '🔇 Soundeffekte: aus' : '🔊 Soundeffekte: an';
+    $('btn-pause-music').textContent = musicOn ? '🎵 Musik: an' : '🎵 Musik: aus';
+  }
+
+  // ---------- Background: slowly falling blocks on the menu screens ----------
+  const bg = $('bg');
+  const bgCtx = bg.getContext('2d');
+  let bgBlocks = [], bgRunning = false;
+
+  function resizeCanvas(canvas, ctx) {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * dpr;
+    canvas.height = innerHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function updateBackground() {
+    const wanted = currentScreen !== 'screen-game' && !reducedMotion();
+    if (wanted && !bgRunning) { bgRunning = true; requestAnimationFrame(stepBg); }
+    if (!wanted) { bgRunning = false; bgCtx.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+
+  function stepBg() {
+    if (!bgRunning) return;
+    if (bgBlocks.length < 22 && Math.random() < 0.08) {
+      const size = 18 + Math.random() * 26;
+      bgBlocks.push({
+        x: Math.random() * innerWidth, y: -size, size, vy: 0.4 + Math.random() * 0.9,
+        rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.01, color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      });
+    }
+    bgCtx.clearRect(0, 0, innerWidth, innerHeight);
+    bgBlocks = bgBlocks.filter(b => b.y < innerHeight + 60);
+    for (const b of bgBlocks) {
+      b.y += b.vy; b.rot += b.vr;
+      bgCtx.save();
+      bgCtx.globalAlpha = 0.28;
+      bgCtx.translate(b.x, b.y);
+      bgCtx.rotate(b.rot);
+      bgCtx.fillStyle = b.color;
+      bgCtx.beginPath();
+      bgCtx.roundRect(-b.size / 2, -b.size / 2, b.size, b.size, b.size * 0.2);
+      bgCtx.fill();
+      bgCtx.restore();
+    }
+    requestAnimationFrame(stepBg);
+  }
+
   // ---------- Visual effects: particles, confetti, floating text ----------
   const fx = $('fx');
   const fxCtx = fx.getContext('2d');
   let particles = [];
   let fxRunning = false;
 
-  function resizeFx() {
-    const dpr = window.devicePixelRatio || 1;
-    fx.width = innerWidth * dpr;
-    fx.height = innerHeight * dpr;
-    fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  window.addEventListener('resize', resizeFx);
-  resizeFx();
+  function onResize() { resizeCanvas(fx, fxCtx); resizeCanvas(bg, bgCtx); }
+  window.addEventListener('resize', onResize);
+  onResize();
 
   function burst(x, y, color, count, speed = 5) {
-    if (reducedMotion) count = Math.ceil(count / 4);
+    if (reducedMotion()) count = Math.ceil(count / 4);
     for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2;
       const v = (0.4 + Math.random()) * speed;
@@ -470,7 +791,7 @@
   }
 
   function confetti() {
-    const count = reducedMotion ? 40 : 160;
+    const count = reducedMotion() ? 40 : 160;
     for (let i = 0; i < count; i++) {
       particles.push({
         x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.5,
@@ -522,7 +843,7 @@
   }
 
   function shakeBoard() {
-    if (reducedMotion) return;
+    if (reducedMotion()) return;
     boardEl.classList.remove('shake');
     void boardEl.offsetWidth;
     boardEl.classList.add('shake');
@@ -576,7 +897,8 @@
   }
 
   // ---------- Dealer: picks the next three pieces ----------
-  // Three tiers: pure chance; a fair hand where all three pieces fit somehow;
+  // Four tiers: pure chance; a fair hand where all three pieces fit somehow; a hard hand
+  // (the worst of several samples), which gets more likely the longer a round lasts;
   // and, during a luck boost, the best of many sampled hands.
 
   // Place a piece on a copy of the board and clear full lines. `contacts` counts neighbours
@@ -636,30 +958,42 @@
     return best;
   }
 
+  // Difficulty ramp: 0 at the start of a round, rising with every hand so each round ends eventually.
+  const PRESSURE = { endless: [8, 30], daily: [6, 25], level: [12, 25] };   // [first hand, hands to full pressure]
+  const MAX_PRESSURE = 0.85;
+  function pressure() {
+    const [start, span] = PRESSURE[mode];
+    return Math.min(MAX_PRESSURE, Math.max(0, (handsDealt - start) / span));
+  }
+
   // Chance that the next hand is guaranteed to fit completely.
   function fairChance() {
     if (handsDealt < 3) return 1;      // a friendly start
     const filled = grid.reduce((n, rowArr) => n + rowArr.filter(Boolean).length, 0) / (SIZE * SIZE);
     let chance = mode === 'endless' ? 0.3 : 0.45;
     if (filled > 0.5) chance += 0.3;   // a lifeline when the board gets crowded
-    return chance;
+    return chance * (1 - pressure());
   }
 
   const LUCKY_SAMPLES = 25;
+  const HARD_SAMPLES = 6;
   const FAIR_TRIES = 20;
   const randomPiece = () => ({ cells: randomShape(), color: COLORS[Math.floor(rand() * COLORS.length)] });
   const randomHand = () => [randomPiece(), randomPiece(), randomPiece()];
 
-  function pickHand() {
-    if (luckyHands > 0) {
-      let best = null, bestRating = -Infinity;
-      for (let i = 0; i < LUCKY_SAMPLES; i++) {
-        const hand = randomHand();
-        const rating = rateHand(hand);
-        if (!best || rating > bestRating) { best = hand; bestRating = rating; }
-      }
-      return best;
+  function sampleHand(samples, better) {
+    let best = null, bestRating = 0;
+    for (let i = 0; i < samples; i++) {
+      const hand = randomHand();
+      const rating = rateHand(hand);
+      if (!best || better(rating, bestRating)) { best = hand; bestRating = rating; }
     }
+    return best;
+  }
+
+  function pickHand() {
+    if (luckyHands > 0) return sampleHand(LUCKY_SAMPLES, (a, b) => a > b);
+    if (rand() < pressure()) return sampleHand(HARD_SAMPLES, (a, b) => a < b);
     if (rand() < fairChance()) {
       for (let i = 0; i < FAIR_TRIES; i++) {
         const hand = randomHand();
@@ -740,6 +1074,7 @@
     });
   }
 
+  // ---------- Rendering ----------
   function renderBoard() {
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
@@ -797,11 +1132,11 @@
     if (mode === 'endless') {
       if (score > best) { best = score; save('klotz-best', best); }
       bestEl.textContent = best;
-      statusEl.textContent = 'Endlos-Modus';
+      statusEl.textContent = 'Endlos';
     } else {
       const goal = goalLines();
       const name = mode === 'daily' ? 'Tages-Challenge' : `Level ${level + 1}`;
-      statusEl.textContent = `${name} · Linien ${Math.min(lines, goal)}/${goal}`;
+      statusEl.textContent = `${name} · ${Math.min(lines, goal)}/${goal} Linien`;
       $('goal-fill').style.width = Math.min(100, (lines / goal) * 100) + '%';
     }
   }
@@ -913,6 +1248,7 @@
     if (cleared > 0) {
       combo++;
       lines += cleared;
+      addStats({ lines: cleared });
       // More lines at once and longer streaks are worth disproportionately more.
       const gained = cleared * 10 * cleared * combo;
       score += gained;
@@ -972,7 +1308,7 @@
   }
 
   function showDialog(id) {
-    for (const d of ['dlg-menu', 'dlg-over', 'dlg-win', 'dlg-ad']) $(d).hidden = d !== id;
+    for (const d of ['dlg-pause', 'dlg-over', 'dlg-win', 'dlg-ad']) $(d).hidden = d !== id;
     overlay.classList.add('show');
   }
 
@@ -984,7 +1320,9 @@
       mode === 'endless' ? `Punkte: ${score}` :
       mode === 'daily' ? `Tages-Challenge: ${goalText}` :
       `Level ${level + 1}: ${goalText}`;
-    $('btn-revive').hidden = revived;
+    const left = MAX_RESCUES - rescues;
+    $('btn-revive').hidden = left <= 0;
+    $('revive-info').textContent = `Werbung ansehen · noch ${left}× möglich`;
     setTimeout(() => showDialog('dlg-over'), 400);
   }
 
@@ -1016,6 +1354,8 @@
       if (d.last !== today) { d.streak += 1; d.last = today; }
       d.stars = { [today]: Math.max(d.stars?.[today] || 0, stars) };
       save('klotz-daily', d);
+      const s = loadStats();
+      if (d.streak > s.bestStreak) save('klotz-stats', { ...s, bestStreak: d.streak });
       $('win-title').textContent = 'Tages-Challenge geschafft!';
       $('win-text').textContent = `${score} Punkte. Morgen gibt es ein neues Feld.`;
       $('win-streak').textContent = d.streak > 1 ? `🔥 ${d.streak} Tage in Folge` : '🔥 Deine erste Serie beginnt';
@@ -1032,16 +1372,20 @@
     }, 400);
   }
 
-  // Second chance (after a rewarded ad): wipe the middle four rows and deal lucky hands.
-  function revive() {
+  // Rescue (after a rewarded ad): wipe the middle four rows and deal lucky hands.
+  // The difficulty ramp keeps going, so a rescued round still ends at some point.
+  function rescue() {
+    if (rescues >= MAX_RESCUES) return;
     showAd('Feld wird frei und 2 Runden lang die besten Steine', () => {
-      revived = true;
+      rescues++;
       over = false;
       for (let r = 2; r < 6; r++) grid[r].fill(null);
       luckyHands = 2;
       dealPieces();
       renderBoard();
       renderTray();
+      confetti();
+      toast('Gerettet! Weiter geht’s 🍀', 2000);
     });
   }
 
@@ -1067,70 +1411,65 @@
     } else if (mode === 'daily') {
       dailyLayout();
     }
-    score = 0; combo = 0; lines = 0; revived = false; busy = false; over = false;
+    score = 0; combo = 0; lines = 0; rescues = 0; busy = false; over = false;
     justPlaced = new Set();
     luckyHands = 0; handsDealt = 0; luckReadyAt = 0;
     best = load('klotz-best', 0);
+    addStats({ games: 1 });
     $('goal').hidden = mode === 'endless';
     $('best-row').hidden = mode !== 'endless';
-    overlay.classList.remove('show');
+    showScreen('screen-game');
     dealPieces();
     renderBoard();
     renderTray();
     renderHud();
   }
 
-  function openMenu() {
-    const d = dailyState();
-    const doneToday = d.last === todayKey();
-    const todayStars = d.stars?.[todayKey()] || 0;
-    $('daily-info').textContent = doneToday
-      ? `Heute geschafft ${'★'.repeat(todayStars)}${'☆'.repeat(3 - todayStars)} · 🔥 ${d.streak} ${d.streak === 1 ? 'Tag' : 'Tage'}`
-      : d.streak > 0 ? `Neues Feld wartet · 🔥 ${d.streak} ${d.streak === 1 ? 'Tag' : 'Tage'} Serie` : 'Jeden Tag ein neues Feld';
+  // Leaving a round goes back to where the player came from.
+  const homeFor = () => mode === 'level' ? 'screen-levels' : 'screen-home';
 
-    const unlocked = load('klotz-unlocked', 1);
-    const allStars = load('klotz-stars', {});
-    const gridEl = $('level-grid');
-    gridEl.innerHTML = '';
-    LEVELS.forEach((_, i) => {
-      const b = document.createElement('button');
-      const s = allStars[i] || 0;
-      b.className = 'secondary';
-      b.disabled = i + 1 > unlocked;
-      b.innerHTML = `${i + 1}<small>${s ? '★'.repeat(s) + '☆'.repeat(3 - s) : '&nbsp;'}</small>`;
-      b.setAttribute('aria-label', `Level ${i + 1}${s ? `, ${s} Sterne` : ''}`);
-      b.addEventListener('click', () => { sfx.click(); startGame('level', i); });
-      gridEl.appendChild(b);
-    });
-    showDialog('dlg-menu');
-  }
+  // ---------- Wiring ----------
+  const on = (id, fn) => $(id).addEventListener('click', () => { sfx.click(); fn(); });
 
-  $('btn-luck').addEventListener('click', () => { sfx.click(); activateLuck(); });
-  $('btn-daily').addEventListener('click', () => { sfx.click(); startGame('daily'); });
-  $('btn-endless').addEventListener('click', () => { sfx.click(); startGame('endless'); });
-  $('btn-revive').addEventListener('click', () => { sfx.click(); revive(); });
-  $('btn-retry').addEventListener('click', () => { sfx.click(); startGame(mode, level); });
-  $('btn-win-retry').addEventListener('click', () => { sfx.click(); startGame(mode, level); });
-  $('btn-next').addEventListener('click', () => { sfx.click(); startGame('level', level + 1); });
-  $('btn-over-menu').addEventListener('click', () => { sfx.click(); openMenu(); });
-  $('btn-win-menu').addEventListener('click', () => { sfx.click(); openMenu(); });
-  $('btn-menu').addEventListener('click', () => { sfx.click(); openMenu(); });
-  $('btn-sound').addEventListener('click', () => {
-    muted = !muted;
-    save('klotz-muted', muted);
-    renderAudioButtons();
-    sfx.click();
-  });
-  $('btn-music').addEventListener('click', () => {
-    musicOn = !musicOn;
-    save('klotz-music', musicOn);
-    renderAudioButtons();
-    updateMusic();
+  on('btn-play', () => showScreen('screen-home'));
+  on('btn-daily', () => startGame('daily'));
+  on('btn-endless', () => startGame('endless'));
+  on('btn-levels', () => showScreen('screen-levels'));
+  on('btn-stats', () => showScreen('screen-stats'));
+  on('btn-settings', () => showScreen('screen-settings'));
+  document.querySelectorAll('[data-back]').forEach(b =>
+    b.addEventListener('click', () => { sfx.click(); showScreen(b.dataset.back); }));
+
+  on('set-sound', () => setMuted(!muted));
+  on('set-music', () => setMusic(!musicOn));
+  on('set-calm', () => { calm = !calm; save('klotz-calm', calm); renderSettings(); updateBackground(); });
+  on('btn-reset', () => { $('reset-confirm').hidden = false; });
+  on('btn-reset-no', () => { $('reset-confirm').hidden = true; });
+  on('btn-reset-yes', () => {
+    try { STORAGE_KEYS.forEach(k => localStorage.removeItem(k)); } catch {}
+    $('reset-confirm').hidden = true;
+    toast('Fortschritt gelöscht', 2000);
   });
 
-  renderAudioButtons();
-  startGame('endless');
-  openMenu();
+  on('btn-pause', () => { if (!over) showDialog('dlg-pause'); });
+  on('btn-resume', () => overlay.classList.remove('show'));
+  on('btn-pause-sound', () => setMuted(!muted));
+  on('btn-pause-music', () => setMusic(!musicOn));
+  on('btn-restart', () => startGame(mode, level));
+  on('btn-pause-home', () => showScreen(homeFor()));
+
+  on('btn-luck', activateLuck);
+  on('btn-revive', rescue);
+  on('btn-retry', () => startGame(mode, level));
+  on('btn-over-home', () => showScreen(homeFor()));
+  on('btn-next', () => startGame('level', level + 1));
+  on('btn-win-retry', () => startGame(mode, level));
+  on('btn-win-home', () => showScreen(homeFor()));
+
+  buildLogo();
+  renderTitle();
+  renderSettings();
+  showScreen('screen-title');
 })();
 </script>
 </body>
