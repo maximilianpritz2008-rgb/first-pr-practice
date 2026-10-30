@@ -93,6 +93,12 @@
   .card-daily { background: linear-gradient(135deg, #ff4d6d, #ff9f1c); }
   .card-endless { background: linear-gradient(135deg, #00a6ff, #8f5bff); }
   .card-levels { background: linear-gradient(135deg, #1fbf5a, #00b3a4); }
+  .card-shop { background: linear-gradient(135deg, #ff4fd8, #8f5bff); }
+  .home-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .coin-pill {
+    padding: 6px 12px; border-radius: 999px; background: var(--panel); flex: none;
+    font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums;
+  }
   .home-nav { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: auto; }
   .home-nav button { margin: 0; }
 
@@ -120,6 +126,27 @@
   .level-node.current { animation: pulse 1.6s ease-in-out infinite; background: linear-gradient(180deg, #38e54d, #1f9e3a); }
   .level-node:disabled { background: #3a2f63; color: #6d6491; cursor: default; }
   .stars-total { font-weight: 800; color: var(--accent); }
+
+  /* Shop */
+  .tabs { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tabs button { margin: 0; padding: 10px; background: var(--panel); color: var(--muted); }
+  .tabs button[aria-selected="true"] { background: var(--button); color: var(--text); }
+  .shop-grid { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .shop-item {
+    display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 16px;
+    background: var(--panel); text-align: center; min-width: 0;
+  }
+  .shop-item.selected { box-shadow: 0 0 0 3px var(--accent); }
+  .shop-item .name { font-weight: 800; }
+  .shop-item button { margin: 0; padding: 10px; font-size: 14px; }
+  .shop-item button:disabled { opacity: 0.5; cursor: default; }
+  .preview-blocks {
+    height: 92px; border-radius: 10px; background: var(--cell);
+    display: grid; grid-template-columns: repeat(4, 18px); grid-auto-rows: 18px; gap: 3px;
+    align-content: center; justify-content: center;
+  }
+  .preview-bg { width: 100%; height: 92px; border-radius: 10px; display: block; }
+  .free-coins { width: 100%; margin: 0; }
 
   /* Stats & settings */
   .list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
@@ -218,6 +245,22 @@
     60% { transform: scale(1.1) rotate(6deg); }
   }
   .cell.placed { animation: land 0.3s ease-out; }
+  /* Block skins: set on the board, the tray, the dragged piece and shop previews. */
+  [data-skin="candy"] .block {
+    border-radius: 10px;
+    background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.5) 0 4px, transparent 4px 10px),
+      linear-gradient(180deg, rgba(255,255,255,0.35), transparent 60%);
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,0.15), 0 0 8px rgba(255,255,255,0.15);
+  }
+  [data-skin="neon"] .block {
+    background-color: rgba(12, 6, 32, 0.92) !important; background-image: none;
+    box-shadow: inset 0 0 0 2px var(--c), inset 0 0 10px var(--c), 0 0 10px var(--c);
+  }
+  [data-skin="gems"] .block {
+    border-radius: 4px;
+    background-image: conic-gradient(from 45deg, rgba(255,255,255,0.55), rgba(0,0,0,0.3) 25%, rgba(255,255,255,0.25) 50%, rgba(0,0,0,0.4) 75%, rgba(255,255,255,0.55));
+    box-shadow: inset 0 0 0 3px rgba(255,255,255,0.25), 0 0 10px rgba(255,255,255,0.2);
+  }
   @keyframes land { 0% { transform: scale(1.25); filter: brightness(1.8); } 100% { transform: scale(1); } }
   .cell.ghost { background: var(--ghost-ok); }
   .cell.will-clear { filter: brightness(1.6) saturate(1.3); }
@@ -292,6 +335,7 @@
   .stars span:nth-child(3).on { animation-delay: 0.5s; }
   @keyframes star-in { from { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.4); } }
   #win-streak { color: #ffb347; font-weight: 700; }
+  .coins-won { color: var(--accent); font-weight: 800; font-size: 18px; }
   .ad-box {
     margin: 4px 0 14px; padding: 36px 12px; border-radius: 12px; font-weight: 700;
     background: repeating-linear-gradient(45deg, #3a2a6e, #3a2a6e 12px, #33245f 12px, #33245f 24px);
@@ -321,7 +365,7 @@
 
 <!-- Home / main menu -->
 <div class="screen" id="screen-home" hidden>
-  <div class="home-title">Klotz Kaskade</div>
+  <div class="home-head"><div class="home-title">Klotz Kaskade</div><div class="coin-pill" id="home-coins"></div></div>
   <button class="mode-card card-daily" id="btn-daily">
     <span class="emoji">☀️</span>
     <span class="txt"><span class="name">Tages-Challenge</span><span class="info" id="daily-info"></span></span>
@@ -333,6 +377,10 @@
   <button class="mode-card card-levels" id="btn-levels">
     <span class="emoji">🗺️</span>
     <span class="txt"><span class="name">Level</span><span class="info" id="levels-info"></span></span>
+  </button>
+  <button class="mode-card card-shop" id="btn-shop">
+    <span class="emoji">🛍️</span>
+    <span class="txt"><span class="name">Shop</span><span class="info">Neue Blöcke und Hintergründe</span></span>
   </button>
   <div class="home-nav">
     <button class="secondary" id="btn-stats">📊 Statistik</button>
@@ -348,6 +396,21 @@
     <span class="stars-total" id="stars-total"></span>
   </div>
   <div class="map" id="level-map"></div>
+</div>
+
+<!-- Shop -->
+<div class="screen" id="screen-shop" hidden>
+  <div class="topbar">
+    <button class="icon-btn" data-back="screen-home" aria-label="Zurück">←</button>
+    <h2>Shop</h2>
+    <span class="coin-pill" id="shop-coins"></span>
+  </div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-skins" aria-selected="true">Blöcke</button>
+    <button role="tab" id="tab-bgs" aria-selected="false">Hintergründe</button>
+  </div>
+  <div class="shop-grid" id="shop-grid"></div>
+  <button class="primary free-coins" id="btn-free-coins"></button>
 </div>
 
 <!-- Stats -->
@@ -414,6 +477,7 @@
   <div class="dialog" id="dlg-over" hidden>
     <h2>Kein Platz mehr!</h2>
     <p id="over-text"></p>
+    <p class="coins-won" id="over-coins"></p>
     <button class="rescue" id="btn-revive">Spiel retten<small id="revive-info"></small></button>
     <button class="secondary" id="btn-retry">Nochmal</button>
     <button class="secondary" id="btn-over-home">Hauptmenü</button>
@@ -423,6 +487,8 @@
     <div class="stars" id="win-stars"><span>★</span><span>★</span><span>★</span></div>
     <p id="win-text"></p>
     <p id="win-streak" hidden></p>
+    <p class="coins-won" id="win-coins"></p>
+    <button class="rescue" id="btn-double">Münzen verdoppeln<small>Werbung ansehen</small></button>
     <button class="primary" id="btn-next">Nächstes Level</button>
     <button class="secondary" id="btn-win-retry">Nochmal für mehr Sterne</button>
     <button class="secondary" id="btn-win-home">Hauptmenü</button>
@@ -438,7 +504,8 @@
 <script>
 (() => {
   const SIZE = 8;
-  const COLORS = ['#ff4d6d', '#ff9f1c', '#ffd60a', '#38e54d', '#00c2ff', '#8f5bff', '#ff4fd8'];
+  const CLASSIC_COLORS = ['#ff4d6d', '#ff9f1c', '#ffd60a', '#38e54d', '#00c2ff', '#8f5bff', '#ff4fd8'];
+  let COLORS = CLASSIC_COLORS;   // the current skin's palette
   // Obstacles on the board: a bush disappears when its row or column is cleared,
   // a thorny bush first turns into a normal bush.
   const BUSH = 'bush', THORNY = 'thorny';
@@ -510,7 +577,36 @@
   function save(key, value) {
     try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
   }
-  const STORAGE_KEYS = ['klotz-best', 'klotz-unlocked', 'klotz-stars', 'klotz-daily', 'klotz-stats', 'klotz-ads-watched'];
+  const STORAGE_KEYS = ['klotz-best', 'klotz-unlocked', 'klotz-stars', 'klotz-daily', 'klotz-stats', 'klotz-ads-watched',
+    'klotz-coins', 'klotz-owned', 'klotz-skin', 'klotz-bg', 'klotz-free-coins'];
+
+  // ---------- Coins & shop items ----------
+  const SKINS = [
+    { id: 'classic', name: 'Klassik', price: 0, colors: CLASSIC_COLORS },
+    { id: 'candy', name: 'Süßigkeiten', price: 150, colors: ['#ff8fab', '#ffb3c6', '#a0c4ff', '#9bf6ff', '#caffbf', '#fdffb6', '#ffc6ff'] },
+    { id: 'neon', name: 'Neon', price: 250, colors: ['#ff2bd6', '#00f0ff', '#39ff14', '#fffb00', '#ff6b00', '#bf5bff', '#ff3864'] },
+    { id: 'gems', name: 'Edelsteine', price: 400, colors: ['#e0115f', '#0f52ba', '#50c878', '#9966cc', '#ffbf00', '#00a6a6', '#ff5f1f'] },
+  ];
+  const BACKGROUNDS = [
+    { id: 'evening', name: 'Abendhügel', price: 0 },
+    { id: 'beach', name: 'Strand', price: 200 },
+    { id: 'winter', name: 'Winternacht', price: 350 },
+  ];
+  // Coins per cleared line, per win and per star; endless pays per points scored.
+  const COINS = { line: 1, levelWin: 10, dailyWin: 25, perStar: 5, endlessPoints: 200, freeAd: 50, freeAdsPerDay: 3 };
+
+  const coins = () => load('klotz-coins', 0);
+  function addCoins(n) { save('klotz-coins', coins() + n); }
+  const owned = () => ({ skins: ['classic'], bgs: ['evening'], ...load('klotz-owned', {}) });
+  let skinId = load('klotz-skin', 'classic');
+  let bgTheme = load('klotz-bg', 'evening');
+
+  function applySkin() {
+    const skin = SKINS.find(x => x.id === skinId) || SKINS[0];
+    COLORS = skin.colors;
+    for (const id of ['board', 'tray', 'drag']) $(id).dataset.skin = skin.id;
+  }
+
 
   let calm = load('klotz-calm', false);
   const reducedMotion = () => calm || matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -648,7 +744,7 @@
   });
 
   // ---------- Screens ----------
-  const SCREENS = ['screen-title', 'screen-home', 'screen-levels', 'screen-stats', 'screen-settings', 'screen-game'];
+  const SCREENS = ['screen-title', 'screen-home', 'screen-levels', 'screen-shop', 'screen-stats', 'screen-settings', 'screen-game'];
   let currentScreen = 'screen-title';
 
   function showScreen(id) {
@@ -662,6 +758,7 @@
     if (id === 'screen-home') renderHome();
     if (id === 'screen-levels') renderLevelMap();
     if (id === 'screen-stats') renderStats();
+    if (id === 'screen-shop') renderShop();
     if (id === 'screen-settings') { $('reset-confirm').hidden = true; renderSettings(); }
     updateBackground();
   }
@@ -672,7 +769,7 @@
       const t = document.createElement('div');
       t.className = 'logo-tile';
       t.textContent = ch;
-      t.style.backgroundColor = COLORS[i];
+      t.style.backgroundColor = CLASSIC_COLORS[i];
       t.style.animationDelay = `${i * 0.12}s, ${0.8 + i * 0.2}s`;
       row.appendChild(t);
     });
@@ -695,6 +792,7 @@
       ? `Heute geschafft ${'★'.repeat(todayStars)}${'☆'.repeat(3 - todayStars)} · ${streakText}`
       : d.streak > 0 ? `Neues Feld wartet · ${streakText} Serie` : 'Jeden Tag ein neues Feld';
     $('endless-info').textContent = `Rekord: ${load('klotz-best', 0)} Punkte`;
+    $('home-coins').textContent = `🪙 ${coins()}`;
     const unlocked = load('klotz-unlocked', 1);
     $('levels-info').textContent = `${Math.min(unlocked, LEVELS.length)} von ${LEVELS.length} offen · ★ ${totalStars()} von ${LEVELS.length * 3}`;
   }
@@ -732,10 +830,115 @@
       ['Sterne', `${totalStars()} / ${LEVELS.length * 3}`],
       ['Aktuelle Serie', `${d.streak} ${d.streak === 1 ? 'Tag' : 'Tage'}`],
       ['Längste Serie', `${Math.max(s.bestStreak, d.streak)} ${Math.max(s.bestStreak, d.streak) === 1 ? 'Tag' : 'Tage'}`],
+      ['Münzen', `🪙 ${coins()}`],
       ['Werbungen angesehen', load('klotz-ads-watched', 0)],
     ];
     $('stats-list').innerHTML = rows.map(([label, value]) =>
       `<div class="row"><span class="label">${label}</span><span class="value">${value}</span></div>`).join('');
+  }
+
+  let shopTab = 'skins';
+
+  function freeCoinsLeft() {
+    const f = load('klotz-free-coins', { day: null, used: 0 });
+    return COINS.freeAdsPerDay - (f.day === todayKey() ? f.used : 0);
+  }
+
+  function renderShop() {
+    $('shop-coins').textContent = `🪙 ${coins()}`;
+    $('tab-skins').setAttribute('aria-selected', String(shopTab === 'skins'));
+    $('tab-bgs').setAttribute('aria-selected', String(shopTab === 'bgs'));
+    const items = shopTab === 'skins' ? SKINS : BACKGROUNDS;
+    const own = owned()[shopTab];
+    const selected = shopTab === 'skins' ? skinId : bgTheme;
+    const gridEl = $('shop-grid');
+    gridEl.innerHTML = '';
+    for (const item of items) {
+      const card = document.createElement('div');
+      card.className = 'shop-item' + (item.id === selected ? ' selected' : '');
+
+      if (shopTab === 'skins') {
+        const preview = document.createElement('div');
+        preview.className = 'preview-blocks';
+        preview.dataset.skin = item.id;
+        // A little T and an L in the skin's colours
+        [[0,0,0],[0,1,0],[0,2,0],[1,1,0],[1,3,1],[2,3,1],[3,3,1],[3,2,1],[2,0,2],[3,0,2]].forEach(([r, c, k]) => {
+          const b = document.createElement('div');
+          b.className = 'block';
+          b.style.gridRow = r + 1; b.style.gridColumn = c + 1;
+          b.style.backgroundColor = item.colors[k * 2];
+          b.style.setProperty('--c', item.colors[k * 2]);
+          preview.appendChild(b);
+        });
+        card.appendChild(preview);
+      } else {
+        const canvas = document.createElement('canvas');
+        canvas.className = 'preview-bg';
+        card.appendChild(canvas);
+        requestAnimationFrame(() => {
+          const dpr = window.devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+          canvas.width = w * dpr; canvas.height = h * dpr;
+          const g = canvas.getContext('2d');
+          g.setTransform(dpr, 0, 0, dpr, 0, 0);
+          paintScene(g, w, h, item.id, 0.35);
+        });
+      }
+
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = item.name;
+      card.appendChild(name);
+
+      const btn = document.createElement('button');
+      if (item.id === selected) {
+        btn.className = 'secondary'; btn.textContent = 'Ausgewählt'; btn.disabled = true;
+      } else if (own.includes(item.id)) {
+        btn.className = 'secondary'; btn.textContent = 'Auswählen';
+        btn.addEventListener('click', () => { sfx.click(); selectItem(item.id); });
+      } else if (coins() >= item.price) {
+        btn.className = 'primary'; btn.textContent = `Kaufen · 🪙 ${item.price}`;
+        btn.addEventListener('click', () => buyItem(item));
+      } else {
+        btn.className = 'secondary'; btn.textContent = `🪙 ${item.price} · fehlen ${item.price - coins()}`; btn.disabled = true;
+      }
+      card.appendChild(btn);
+      gridEl.appendChild(card);
+    }
+    const left = freeCoinsLeft();
+    $('btn-free-coins').disabled = left <= 0;
+    $('btn-free-coins').innerHTML = left > 0
+      ? `+${COINS.freeAd} 🪙 gratis<small>Werbung ansehen · heute noch ${left}×</small>`
+      : `Gratis-Münzen<small>Morgen wieder verfügbar</small>`;
+  }
+
+  function selectItem(id) {
+    if (shopTab === 'skins') { skinId = id; save('klotz-skin', id); applySkin(); }
+    else { bgTheme = id; save('klotz-bg', id); drawScene(); if (!bgRunning) drawFrame(0); }
+    renderShop();
+  }
+
+  function buyItem(item) {
+    if (coins() < item.price) return;
+    addCoins(-item.price);
+    const o = owned();
+    o[shopTab] = [...o[shopTab], item.id];
+    save('klotz-owned', o);
+    sfx.win();
+    confetti();
+    toast(`${item.name} gekauft!`, 2000);
+    selectItem(item.id);
+  }
+
+  function freeCoins() {
+    if (freeCoinsLeft() <= 0) return;
+    showAd(`${COINS.freeAd} Münzen`, () => {
+      const f = load('klotz-free-coins', { day: null, used: 0 });
+      save('klotz-free-coins', { day: todayKey(), used: (f.day === todayKey() ? f.used : 0) + 1 });
+      addCoins(COINS.freeAd);
+      sfx.star(2);
+      toast(`+${COINS.freeAd} 🪙`, 2000);
+      renderShop();
+    });
   }
 
   function renderSettings() {
@@ -746,14 +949,14 @@
     $('btn-pause-music').textContent = musicOn ? '🎵 Musik: an' : '🎵 Musik: aus';
   }
 
-  // ---------- Background: an evening landscape with stars, hills and fireflies ----------
-  // The static parts (sky, moon, hills) are drawn once into an offscreen canvas;
-  // each frame only adds twinkling stars, fireflies and, on menu screens, falling blocks.
+  // ---------- Background: animated landscapes (evening hills, beach, winter night) ----------
+  // The static parts (sky, sun or moon, hills) are drawn once into an offscreen canvas;
+  // each frame only adds twinkling stars, the theme's particles and, on menu screens, falling blocks.
   const bg = $('bg');
   const bgCtx = bg.getContext('2d');
   const scene = document.createElement('canvas');
   const sceneCtx = scene.getContext('2d');
-  let bgStars = [], fireflies = [], bgBlocks = [], bgRunning = false;
+  let bgStars = [], bgParticles = [], bgBlocks = [], bgRunning = false;
 
   function resizeCanvas(canvas, ctx) {
     const dpr = window.devicePixelRatio || 1;
@@ -766,67 +969,169 @@
   const hillY = (x, base, amp, seed) =>
     base - amp * (0.6 * Math.sin(x * 0.006 + seed) + 0.3 * Math.sin(x * 0.013 + seed * 2) + 0.1 * Math.sin(x * 0.031 + seed * 3));
 
-  function drawScene() {
-    resizeCanvas(scene, sceneCtx);
-    const w = innerWidth, h = innerHeight, g = sceneCtx;
-
+  function fillSky(g, w, h, stops) {
     const sky = g.createLinearGradient(0, 0, 0, h);
-    sky.addColorStop(0, '#0d0624');
-    sky.addColorStop(0.45, '#2a0f55');
-    sky.addColorStop(0.75, '#7a1f73');
-    sky.addColorStop(1, '#d9466f');
+    stops.forEach((color, i) => sky.addColorStop(i / (stops.length - 1), color));
     g.fillStyle = sky;
     g.fillRect(0, 0, w, h);
+  }
 
-    // Moon with a soft glow
-    const mx = w * 0.78, my = h * 0.16, mr = Math.min(w, h) * 0.07;
-    const glow = g.createRadialGradient(mx, my, mr * 0.5, mx, my, mr * 5);
-    glow.addColorStop(0, 'rgba(255, 228, 150, 0.45)');
-    glow.addColorStop(1, 'rgba(255, 228, 150, 0)');
+  function fillHill(g, w, h, base, amp, seed, color) {
+    g.fillStyle = color;
+    g.beginPath();
+    g.moveTo(0, h);
+    for (let x = 0; x <= w + 10; x += 6) g.lineTo(x, hillY(x, base, amp, seed));
+    g.lineTo(w, h);
+    g.closePath();
+    g.fill();
+  }
+
+  function glowDisc(g, w, h, x, y, r, core, halo) {
+    const glow = g.createRadialGradient(x, y, r * 0.5, x, y, r * 5);
+    glow.addColorStop(0, halo);
+    glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
     g.fillStyle = glow;
     g.fillRect(0, 0, w, h);
-    g.fillStyle = '#fff1c1';
-    g.beginPath(); g.arc(mx, my, mr, 0, Math.PI * 2); g.fill();
-    g.fillStyle = 'rgba(230, 200, 140, 0.5)';
-    [[-0.3, -0.2, 0.18], [0.25, 0.15, 0.22], [-0.1, 0.4, 0.12]].forEach(([dx, dy, r]) => {
-      g.beginPath(); g.arc(mx + dx * mr, my + dy * mr, r * mr, 0, Math.PI * 2); g.fill();
-    });
+    g.fillStyle = core;
+    g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
 
-    // Three hill layers, back to front, the front one dotted with bush silhouettes.
-    const layers = [
-      { base: h * 0.72, amp: h * 0.06, seed: 1.3, color: '#4a1a6b' },
-      { base: h * 0.82, amp: h * 0.05, seed: 4.1, color: '#2e1150' },
-      { base: h * 0.9, amp: h * 0.04, seed: 7.7, color: '#170a33' },
-    ];
-    layers.forEach((layer, li) => {
-      g.fillStyle = layer.color;
-      g.beginPath();
-      g.moveTo(0, h);
-      for (let x = 0; x <= w + 10; x += 10) g.lineTo(x, hillY(x, layer.base, layer.amp, layer.seed));
-      g.lineTo(w, h);
-      g.closePath();
-      g.fill();
-      if (li === layers.length - 1) {
-        for (let x = 20; x < w; x += 70 + (x * 7) % 50) {
-          const y = hillY(x, layer.base, layer.amp, layer.seed);
-          const size = 10 + (x * 13) % 12;
+  // `s` scales fixed-size details so the small shop previews look like the full scene.
+  const PAINTERS = {
+    evening(g, w, h, s) {
+      fillSky(g, w, h, ['#0d0624', '#2a0f55', '#7a1f73', '#d9466f']);
+      const mr = Math.min(w, h) * 0.07;
+      glowDisc(g, w, h, w * 0.78, h * 0.16, mr, '#fff1c1', 'rgba(255, 228, 150, 0.45)');
+      g.fillStyle = 'rgba(230, 200, 140, 0.5)';
+      [[-0.3, -0.2, 0.18], [0.25, 0.15, 0.22], [-0.1, 0.4, 0.12]].forEach(([dx, dy, r]) => {
+        g.beginPath(); g.arc(w * 0.78 + dx * mr, h * 0.16 + dy * mr, r * mr, 0, Math.PI * 2); g.fill();
+      });
+      fillHill(g, w, h, h * 0.72, h * 0.06, 1.3, '#4a1a6b');
+      fillHill(g, w, h, h * 0.82, h * 0.05, 4.1, '#2e1150');
+      fillHill(g, w, h, h * 0.9, h * 0.04, 7.7, '#170a33');
+      // Bush silhouettes along the front hill
+      for (let x = 20 * s; x < w; x += (70 + (x * 7) % 50) * s) {
+        const y = hillY(x, h * 0.9, h * 0.04, 7.7);
+        const size = (10 + (x * 13) % 12) * s;
+        g.beginPath();
+        g.arc(x - size * 0.6, y, size * 0.7, 0, Math.PI * 2);
+        g.arc(x, y - size * 0.4, size, 0, Math.PI * 2);
+        g.arc(x + size * 0.7, y, size * 0.75, 0, Math.PI * 2);
+        g.fill();
+      }
+    },
+    beach(g, w, h, s) {
+      fillSky(g, w, h, ['#24104f', '#6d2a7c', '#e0567a', '#ffb36b']);
+      const horizon = h * 0.62;
+      glowDisc(g, w, h, w * 0.5, horizon, Math.min(w, h) * 0.13, '#ffd27a', 'rgba(255, 190, 110, 0.55)');
+      const sea = g.createLinearGradient(0, horizon, 0, h);
+      sea.addColorStop(0, '#5a2d8c');
+      sea.addColorStop(1, '#1b1452');
+      g.fillStyle = sea;
+      g.fillRect(0, horizon, w, h - horizon);
+      // The sun's reflection: short bright stripes that narrow towards the shore
+      g.fillStyle = 'rgba(255, 200, 120, 0.55)';
+      for (let i = 0; i < 9; i++) {
+        const y = horizon + 6 * s + i * 9 * s;
+        const half = (w * 0.12) * (1 - i / 11);
+        g.fillRect(w * 0.5 - half, y, half * 2, 2.5 * s);
+      }
+      fillHill(g, w, h, h * 0.92, h * 0.03, 2.2, '#3a1c4f');
+      // Palm silhouettes on the dune
+      g.strokeStyle = '#2a1238';
+      g.fillStyle = '#2a1238';
+      [[0.12, 1], [0.86, 0.85]].forEach(([fx, scale]) => {
+        const x = w * fx, y = hillY(w * fx, h * 0.92, h * 0.03, 2.2), height = h * 0.22 * scale;
+        g.lineWidth = 6 * s * scale;
+        g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + 18 * s, y - height * 0.6, x + 6 * s, y - height); g.stroke();
+        const tx = x + 6 * s, ty = y - height;
+        for (let k = 0; k < 6; k++) {
+          const a = -Math.PI + (k / 5) * Math.PI;
           g.beginPath();
-          g.arc(x - size * 0.6, y, size * 0.7, 0, Math.PI * 2);
-          g.arc(x, y - size * 0.4, size, 0, Math.PI * 2);
-          g.arc(x + size * 0.7, y, size * 0.75, 0, Math.PI * 2);
+          g.ellipse(tx + Math.cos(a) * 26 * s * scale, ty + Math.sin(a) * 10 * s * scale + 8 * s, 30 * s * scale, 6 * s * scale, a, 0, Math.PI * 2);
           g.fill();
         }
+      });
+    },
+    winter(g, w, h, s) {
+      fillSky(g, w, h, ['#030b22', '#0b2350', '#14546e', '#2a7f8f']);
+      // Aurora: soft wavy ribbons
+      [['rgba(80, 255, 170, 0.22)', 0.22, 0], ['rgba(120, 140, 255, 0.18)', 0.3, 2], ['rgba(80, 255, 200, 0.15)', 0.36, 4]].forEach(([color, base, seed]) => {
+        g.strokeStyle = color;
+        g.lineWidth = h * 0.06;
+        g.lineCap = 'round';
+        g.beginPath();
+        for (let x = -20; x <= w + 20; x += 8) {
+          const y = h * base + Math.sin(x * 0.012 + seed) * h * 0.04 + Math.sin(x * 0.031 + seed) * h * 0.015;
+          if (x === -20) g.moveTo(x, y); else g.lineTo(x, y);
+        }
+        g.stroke();
+      });
+      glowDisc(g, w, h, w * 0.2, h * 0.12, Math.min(w, h) * 0.05, '#eef6ff', 'rgba(200, 225, 255, 0.35)');
+      fillHill(g, w, h, h * 0.74, h * 0.06, 3.1, '#5d86b5');
+      // Pine trees on the middle hill
+      g.fillStyle = '#163556';
+      for (let x = 15 * s; x < w; x += (38 + (x * 11) % 40) * s) {
+        const y = hillY(x, h * 0.82, h * 0.05, 5.3) + 4 * s;
+        const tall = (34 + (x * 17) % 26) * s;
+        g.beginPath(); g.moveTo(x, y - tall); g.lineTo(x - tall * 0.32, y); g.lineTo(x + tall * 0.32, y); g.closePath(); g.fill();
       }
-    });
+      fillHill(g, w, h, h * 0.82, h * 0.05, 5.3, '#a9c9ea');
+      fillHill(g, w, h, h * 0.91, h * 0.035, 8.2, '#e6f2ff');
+    },
+  };
 
-    bgStars = Array.from({ length: Math.round(w * h / 6000) }, () => ({
-      x: Math.random() * w, y: Math.random() * h * 0.6,
+  const BG_PARTICLES = { evening: 'fireflies', beach: 'sparkles', winter: 'snow' };
+
+  function paintScene(g, w, h, theme, s = 1) {
+    (PAINTERS[theme] || PAINTERS.evening)(g, w, h, s);
+  }
+
+  function drawScene() {
+    resizeCanvas(scene, sceneCtx);
+    const w = innerWidth, h = innerHeight;
+    paintScene(sceneCtx, w, h, bgTheme);
+    bgStars = Array.from({ length: Math.round(w * h / (bgTheme === 'beach' ? 14000 : 6000)) }, () => ({
+      x: Math.random() * w, y: Math.random() * h * (bgTheme === 'beach' ? 0.35 : 0.6),
       r: 0.5 + Math.random() * 1.3, phase: Math.random() * Math.PI * 2, speed: 0.5 + Math.random() * 1.5,
     }));
-    fireflies = Array.from({ length: 16 }, () => ({
-      x: Math.random() * w, y: h * (0.55 + Math.random() * 0.4),
-      phase: Math.random() * Math.PI * 2, speed: 0.2 + Math.random() * 0.4,
+    const kind = BG_PARTICLES[bgTheme];
+    bgParticles = Array.from({ length: kind === 'snow' ? 70 : kind === 'sparkles' ? 26 : 16 }, () => ({
+      x: Math.random() * w,
+      y: kind === 'snow' ? Math.random() * h : kind === 'sparkles' ? h * (0.64 + Math.random() * 0.26) : h * (0.55 + Math.random() * 0.4),
+      phase: Math.random() * Math.PI * 2, speed: 0.2 + Math.random() * 0.4, r: 1 + Math.random() * 2.2,
     }));
+  }
+
+  function drawParticles(time, w, h) {
+    const kind = BG_PARTICLES[bgTheme];
+    for (const p of bgParticles) {
+      if (kind === 'fireflies') {
+        const x = p.x + Math.sin(time * p.speed + p.phase) * 30;
+        const y = p.y + Math.cos(time * p.speed * 1.3 + p.phase) * 18;
+        const a = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(time * 2 * p.speed + p.phase));
+        const glow = bgCtx.createRadialGradient(x, y, 0, x, y, 10);
+        glow.addColorStop(0, `rgba(220, 255, 120, ${a})`);
+        glow.addColorStop(1, 'rgba(220, 255, 120, 0)');
+        bgCtx.fillStyle = glow;
+        bgCtx.fillRect(x - 10, y - 10, 20, 20);
+      } else if (kind === 'sparkles') {
+        // Glints on the water that flash on and off
+        const a = Math.max(0, Math.sin(time * 3 * p.speed + p.phase));
+        bgCtx.globalAlpha = a * 0.9;
+        bgCtx.fillStyle = '#ffe2b0';
+        bgCtx.fillRect(p.x - 4, p.y, 8, 1.5);
+        bgCtx.globalAlpha = 1;
+      } else {
+        p.y += 0.4 + p.r * 0.25;
+        const x = p.x + Math.sin(time * p.speed + p.phase) * 12;
+        if (p.y > h + 5) { p.y = -5; p.x = Math.random() * w; }
+        bgCtx.globalAlpha = 0.85;
+        bgCtx.fillStyle = '#ffffff';
+        bgCtx.beginPath(); bgCtx.arc(x, p.y, p.r, 0, Math.PI * 2); bgCtx.fill();
+        bgCtx.globalAlpha = 1;
+      }
+    }
   }
 
   function drawFrame(t) {
@@ -840,18 +1145,8 @@
       bgCtx.fillStyle = '#ffffff';
       bgCtx.beginPath(); bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2); bgCtx.fill();
     }
-
-    for (const f of fireflies) {
-      const x = f.x + Math.sin(time * f.speed + f.phase) * 30;
-      const y = f.y + Math.cos(time * f.speed * 1.3 + f.phase) * 18;
-      const a = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(time * 2 * f.speed + f.phase));
-      const glow = bgCtx.createRadialGradient(x, y, 0, x, y, 10);
-      glow.addColorStop(0, `rgba(220, 255, 120, ${a})`);
-      glow.addColorStop(1, 'rgba(220, 255, 120, 0)');
-      bgCtx.globalAlpha = 1;
-      bgCtx.fillStyle = glow;
-      bgCtx.fillRect(x - 10, y - 10, 20, 20);
-    }
+    bgCtx.globalAlpha = 1;
+    drawParticles(time, w, h);
 
     // Falling blocks only behind the menus, where the board isn't competing for attention.
     if (currentScreen !== 'screen-game') {
@@ -1208,12 +1503,14 @@
         const el = cellEls[i];
         el.className = 'cell';
         el.style.backgroundColor = '';
+        el.style.removeProperty('--c');
         if (isBush(grid[r][c])) {
           el.classList.add('bush');
           if (grid[r][c] === THORNY) el.classList.add('thorny');
         } else if (grid[r][c]) {
           el.classList.add('block');
           el.style.backgroundColor = grid[r][c];
+          el.style.setProperty('--c', grid[r][c]);
           if (justPlaced.has(i)) el.classList.add('placed');
         }
       }
@@ -1232,6 +1529,7 @@
       const b = document.createElement('div');
       b.className = 'block';
       b.style.backgroundColor = piece.color;
+      b.style.setProperty('--c', piece.color);
       b.style.gridRow = r + 1;
       b.style.gridColumn = c + 1;
       el.appendChild(b);
@@ -1391,6 +1689,7 @@
       combo++;
       lines += cleared;
       addStats({ lines: cleared });
+      earn(cleared * COINS.line);
       // More lines at once and longer streaks are worth disproportionately more.
       const gained = cleared * 10 * cleared * combo;
       score += gained;
@@ -1466,9 +1765,20 @@
     overlay.classList.add('show');
   }
 
+  // Coins earned this round, so the end-of-round dialogs can show and double them.
+  let roundCoins = 0, endlessCoinsPaid = 0, doubled = false;
+  function earn(n) { if (n > 0) { roundCoins += n; addCoins(n); } }
+
   function gameOver() {
     over = true;
     sfx.gameOver();
+    // Endless pays for points; a rescued round only pays for the points added since.
+    if (mode === 'endless') {
+      const due = Math.floor(score / COINS.endlessPoints);
+      earn(due - endlessCoinsPaid);
+      endlessCoinsPaid = due;
+    }
+    $('over-coins').textContent = roundCoins ? `+${roundCoins} 🪙 in dieser Runde` : '';
     const left = bushesLeft();
     const goalText = bushGoal() ? `noch ${left} ${left === 1 ? 'Busch' : 'Büsche'}` : `${lines} von ${goalLines()} Linien`;
     $('over-text').textContent =
@@ -1492,12 +1802,16 @@
     over = true;
     const stars = starsFor(score, goalSize());
     $('win-streak').hidden = true;
+    // The win bonus is paid once; replays only pay for newly earned stars.
+    let bonus = 0;
 
     if (mode === 'level') {
       const unlocked = load('klotz-unlocked', 1);
       if (level + 2 > unlocked) save('klotz-unlocked', Math.min(level + 2, LEVELS.length));
       const allStars = load('klotz-stars', {});
-      allStars[level] = Math.max(allStars[level] || 0, stars);
+      const before = allStars[level] || 0;
+      bonus = (before ? 0 : COINS.levelWin) + Math.max(0, stars - before) * COINS.perStar;
+      allStars[level] = Math.max(before, stars);
       save('klotz-stars', allStars);
       const last = level === LEVELS.length - 1;
       $('win-title').textContent = last ? 'Alle Level geschafft!' : 'Level geschafft!';
@@ -1506,8 +1820,10 @@
     } else {
       const d = dailyState();
       const today = todayKey();
+      const before = d.last === today ? d.stars?.[today] || 0 : 0;
+      bonus = (before ? 0 : COINS.dailyWin) + Math.max(0, stars - before) * COINS.perStar;
       if (d.last !== today) { d.streak += 1; d.last = today; }
-      d.stars = { [today]: Math.max(d.stars?.[today] || 0, stars) };
+      d.stars = { [today]: Math.max(before, stars) };
       save('klotz-daily', d);
       const s = loadStats();
       if (d.streak > s.bestStreak) save('klotz-stats', { ...s, bestStreak: d.streak });
@@ -1517,6 +1833,10 @@
       $('win-streak').hidden = false;
       $('btn-next').hidden = true;
     }
+
+    earn(bonus);
+    $('win-coins').textContent = `+${roundCoins} 🪙`;
+    $('btn-double').hidden = doubled || roundCoins === 0;
 
     [...$('win-stars').children].forEach((s, i) => s.classList.toggle('on', i < stars));
     setTimeout(() => {
@@ -1567,6 +1887,7 @@
       dailyLayout();
     }
     score = 0; combo = 0; lines = 0; rescues = 0; busy = false; over = false;
+    roundCoins = 0; endlessCoinsPaid = 0; doubled = false;
     bushesTotal = bushesLeft();
     justPlaced = new Set();
     luckyHands = 0; handsDealt = 0; luckReadyAt = 0;
@@ -1581,6 +1902,20 @@
     renderHud();
   }
 
+  function doubleCoins() {
+    if (doubled || !roundCoins) return;
+    showAd(`${roundCoins} Münzen extra`, () => {
+      doubled = true;
+      addCoins(roundCoins);
+      roundCoins *= 2;
+      $('win-coins').textContent = `+${roundCoins} 🪙`;
+      $('btn-double').hidden = true;
+      sfx.star(2);
+      confetti();
+      showDialog('dlg-win');
+    });
+  }
+
   // Leaving a round goes back to where the player came from.
   const homeFor = () => mode === 'level' ? 'screen-levels' : 'screen-home';
 
@@ -1592,6 +1927,11 @@
   on('btn-endless', () => startGame('endless'));
   on('btn-levels', () => showScreen('screen-levels'));
   on('btn-stats', () => showScreen('screen-stats'));
+  on('btn-shop', () => showScreen('screen-shop'));
+  on('tab-skins', () => { shopTab = 'skins'; renderShop(); });
+  on('tab-bgs', () => { shopTab = 'bgs'; renderShop(); });
+  on('btn-free-coins', freeCoins);
+  on('btn-double', doubleCoins);
   on('btn-settings', () => showScreen('screen-settings'));
   document.querySelectorAll('[data-back]').forEach(b =>
     b.addEventListener('click', () => { sfx.click(); showScreen(b.dataset.back); }));
@@ -1603,6 +1943,8 @@
   on('btn-reset-no', () => { $('reset-confirm').hidden = true; });
   on('btn-reset-yes', () => {
     try { STORAGE_KEYS.forEach(k => localStorage.removeItem(k)); } catch {}
+    skinId = 'classic'; bgTheme = 'evening';
+    applySkin(); drawScene(); if (!bgRunning) drawFrame(0);
     $('reset-confirm').hidden = true;
     toast('Fortschritt gelöscht', 2000);
   });
@@ -1622,6 +1964,7 @@
   on('btn-win-retry', () => startGame(mode, level));
   on('btn-win-home', () => showScreen(homeFor()));
 
+  applySkin();
   buildLogo();
   renderTitle();
   renderSettings();

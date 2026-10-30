@@ -10,7 +10,7 @@ A minimal repo to try out the workflow: branch, commit, push, open PR, merge.
 
 `game/index.html` is a small block puzzle game: drag the three pieces onto the 8×8 board and fill complete rows or columns to clear them. It is a single HTML file with no dependencies, so open it in any browser to play.
 
-The background is an animated evening landscape (stars, moon, hills, fireflies) drawn on a canvas.
+Players earn coins for cleared lines, first wins and new stars (endless pays per 200 points) and spend them in the shop on block skins (classic, candy, neon, gems) and backgrounds. The animated canvas backgrounds are evening hills with fireflies, a beach at sunset and a winter night with aurora and snow. A rewarded ad can double a win's coins or give 50 free coins up to three times a day.
 
 Screens: a title screen, a main menu, a level map, stats, settings, and a pause menu during play.
 
