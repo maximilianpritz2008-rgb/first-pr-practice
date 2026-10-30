@@ -330,6 +330,7 @@
   .animal-card b { display: block; font-family: var(--font-display); font-size: 18px; }
   .animal-card span { color: var(--muted); font-size: 14px; }
   .animal-list { display: flex; flex-direction: column; gap: 10px; }
+  .station-art { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; display: block; box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
   .animal-list .animal-card { cursor: pointer; }
   .ad-box {
     padding: 36px 12px; border-radius: 12px; font-weight: 800;
@@ -476,6 +477,7 @@
     <button class="primary" id="btn-letter-close">Weiter</button>
   </div>
   <div class="dialog" id="dlg-animals" hidden>
+    <img class="station-art" id="station-art" src="img/tierstation.jpg" alt="Die Tierstation: Körbchen mit Kissen, Pflanzen und Bullaugen mit Blick auf den Moosmond" hidden>
     <h2>Tiere an Bord</h2>
     <p id="animals-hint"></p>
     <div class="animal-list" id="animal-list"></div>
@@ -1001,6 +1003,7 @@
   function openAnimals() {
     const list = $('animal-list');
     list.innerHTML = '';
+    $('station-art').hidden = !isRepaired('animals');
     $('animals-hint').textContent = !state.animals.length
       ? 'Noch niemand an Bord. Gewinne Level, um Tiere zu retten.'
       : isRepaired('animals') ? 'Tippe ein Tier an, um es zu streicheln.' : 'Repariere die Tierstation, damit die Tiere ein Zuhause haben.';
