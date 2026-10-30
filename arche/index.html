@@ -112,7 +112,7 @@
     color: #fff; text-align: center; overflow: hidden;
     box-shadow: inset 0 -4px 0 rgba(0,0,0,0.25), inset 0 0 0 3px rgba(0,0,0,0.12);
   }
-  .room .emoji { font-size: 30px; line-height: 1; }
+  .room .art { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
   .room .label { font-weight: 800; font-size: 12px; text-shadow: 0 1px 0 rgba(0,0,0,0.3); }
   .room .residents { display: flex; justify-content: center; margin-top: 2px; }
   .room .residents .animal { margin: 0 -3px; }
@@ -121,7 +121,6 @@
     background-image: repeating-linear-gradient(135deg, rgba(0,0,0,0.12) 0 6px, transparent 6px 14px);
     color: var(--muted);
   }
-  .room.broken .emoji { filter: grayscale(1) brightness(0.7); opacity: 0.6; }
   .room.broken .cost { font-size: 12px; font-weight: 800; color: var(--accent); }
   .room.locked { opacity: 0.55; }
   .room.just-fixed { animation: fixed 0.8s ease-out; }
@@ -312,6 +311,7 @@
   .dialog p { color: var(--muted); margin: 0; }
   .dialog h2 { font-size: 26px; }
   .big-emoji { font-size: 56px; line-height: 1; }
+  .room-art { width: 180px; height: 180px; object-fit: contain; align-self: center; filter: drop-shadow(0 8px 14px rgba(0,0,0,0.4)); }
   .stars { font-size: 40px; letter-spacing: 6px; }
   .stars span { display: inline-block; color: #4b3f78; }
   .stars span.on { color: var(--accent); text-shadow: 0 0 16px rgba(255, 207, 90, 0.8); animation: star-in 0.5s ease-out backwards; }
@@ -466,7 +466,7 @@
     <button class="primary" id="btn-win-ark">Zur Arche</button>
   </div>
   <div class="dialog" id="dlg-room" hidden>
-    <div class="big-emoji" id="room-emoji"></div>
+    <img class="room-art" id="room-art" alt="">
     <h2 id="room-name"></h2>
     <p id="room-text"></p>
     <button class="primary" id="btn-repair"></button>
@@ -562,6 +562,8 @@
       letter: ['In der Tierstation hat jedes Tier ein eigenes Körbchen. Die Kissen habe ich selbst genäht, man sieht es leider.', 'Wer hier einzieht, gehört zur Familie.'] },
   ];
   const roomById = id => ROOMS.find(r => r.id === id);
+  // Room artwork made with SpriteCook: img/rooms/<id>-fixed.png and <id>-broken.png.
+  const roomArt = (room, fixed) => `img/rooms/${room.id}-${fixed ? 'fixed' : 'broken'}.png`;
 
   // Short scenes with Funke, the engineer. 'hero' is whichever player character was chosen.
   const SCENES = {
@@ -914,7 +916,7 @@
       let extra = '';
       if (fixed && room.id === 'animals') extra = `<span class="residents">${state.animals.map(i => ArcheAnimals.html(ANIMALS[i].id, 30)).join('')}</span>`;
       else if (!fixed) extra = `<span class="cost">${locked ? '🔒 ' + PLANETS[room.planet].name : '🔧 ⚙️ ' + room.cost}</span>`;
-      el.innerHTML = `<span class="emoji">${room.emoji}</span><span class="label">${room.name}</span>${extra}`;
+      el.innerHTML = `<img class="art" src="${roomArt(room, fixed)}" alt=""><span class="label">${room.name}</span>${extra}`;
       el.setAttribute('aria-label', `${room.name}${fixed ? ', repariert' : locked ? ', gesperrt' : `, kaputt, kostet ${room.cost} Ersatzteile`}`);
       el.addEventListener('click', () => { sfx.click(); openRoom(room); });
       roomsEl.appendChild(el);
@@ -952,7 +954,7 @@
   let openedRoom = null;
   function openRoom(room) {
     openedRoom = room;
-    $('room-emoji').textContent = room.emoji;
+    $('room-art').src = roomArt(room, isRepaired(room.id));
     $('room-name').textContent = room.name;
     const btn = $('btn-repair');
     if (isRepaired(room.id)) {
