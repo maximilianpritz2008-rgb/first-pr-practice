@@ -1,0 +1,1271 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Omas Arche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+  /* Layout: one centred phone-width column per screen; the ark is the hub, levels branch off it. */
+  :root {
+    --space: #0e0a26;
+    --panel: rgba(36, 28, 78, 0.88);
+    --panel-solid: #2a2160;
+    --cell: #2f2766;
+    --cell-line: #3f3580;
+    --text: #fff8ec;
+    --muted: #c9bfe8;
+    --accent: #ffcf5a;
+    --hull: #f4e7cf;
+    --hull-dark: #d9c3a0;
+    --teal: #3ec7b6;
+    --broken: #4a4366;
+    --paper: #fff4dc;
+    --ink: #4a3424;
+    --ghost-ok: rgba(255, 255, 255, 0.4);
+    --font-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+    --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; height: 100%;
+    background: var(--space); color: var(--text); font-family: var(--font-body);
+    overscroll-behavior: none; user-select: none;
+  }
+  #bg { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+
+  .screen {
+    position: relative; z-index: 1;
+    max-width: 480px; margin: 0 auto; padding: 16px;
+    min-height: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  .screen.enter { animation: screen-in 0.35s ease-out; }
+  @keyframes screen-in { from { opacity: 0; transform: translateY(14px); } }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; line-height: 1.1; text-wrap: balance; }
+  button {
+    display: block; width: 100%; margin: 0; padding: 14px; border: 0; border-radius: 14px;
+    font: 800 16px var(--font-body); cursor: pointer; color: inherit;
+  }
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button small { display: block; font-weight: 600; font-size: 12px; opacity: 0.85; margin-top: 2px; }
+  .primary { background: var(--accent); color: #3d2600; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.18); }
+  .secondary { background: #4c3fa0; color: var(--text); box-shadow: inset 0 -4px 0 rgba(0,0,0,0.18); }
+  .go { background: linear-gradient(135deg, #3ec7b6, #4fd17a); color: #062b22; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.18); }
+  .icon-btn { width: 42px; height: 42px; padding: 0; border-radius: 12px; background: var(--panel); font-size: 18px; flex: none; }
+  .pill {
+    padding: 6px 12px; border-radius: 999px; background: var(--panel);
+    font-weight: 800; font-variant-numeric: tabular-nums; flex: none;
+  }
+
+  /* ---------- Title ---------- */
+  #screen-title { justify-content: center; gap: 22px; text-align: center; }
+  .title-ark { font-size: 84px; animation: bob 3s ease-in-out infinite; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4)); }
+  @keyframes bob { 50% { transform: translateY(-8px) rotate(-2deg); } }
+  .title-name { font-size: clamp(44px, 14vw, 64px); color: var(--accent); text-shadow: 0 4px 0 #b4561f, 0 0 30px rgba(255, 207, 90, 0.4); }
+  .title-sub { color: var(--muted); font-size: 16px; max-width: 30ch; }
+  #screen-title .actions { width: min(300px, 100%); display: flex; flex-direction: column; gap: 10px; }
+
+  /* ---------- Letter ---------- */
+  .letter {
+    width: 100%; background: var(--paper); color: var(--ink); border-radius: 6px;
+    padding: 26px 22px 22px; position: relative; text-align: left;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.45);
+    background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(74, 52, 36, 0.12) 27px 28px);
+    font-size: 17px; line-height: 28px;
+  }
+  .letter::before { content: "✉️"; position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 30px; }
+  .letter h3 { font-size: 22px; margin-bottom: 8px; color: #8a3b12; }
+  .letter p { margin: 0 0 12px; }
+  .letter .sign { font-family: var(--font-display); font-size: 20px; text-align: right; margin: 0; }
+
+  /* ---------- Ark hub ---------- */
+  .hub-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .planet-name { font-size: 22px; }
+  .planet-name small { display: block; font: 700 13px var(--font-body); color: var(--muted); }
+  .ark-wrap { width: 100%; padding: 20px 0 6px 34px; animation: bob 4s ease-in-out infinite; }
+  .ark {
+    position: relative; width: 100%; padding: 16px 30px 16px 26px;
+    background: var(--hull); border-radius: 40px 120px 120px 40px / 40px 90px 90px 40px;
+    box-shadow: inset 0 -10px 0 var(--hull-dark), inset 0 6px 0 rgba(255,255,255,0.6), 0 20px 40px rgba(0,0,0,0.45);
+  }
+  .ark::before {   /* teal stripe along the hull */
+    content: ""; position: absolute; left: 20px; right: 50px; bottom: 14px; height: 6px; border-radius: 3px; background: var(--teal); opacity: 0.6;
+  }
+  .ark-fin {
+    position: absolute; left: 44%; top: -18px; width: 60px; height: 26px; border-radius: 30px 30px 4px 4px;
+    background: var(--teal); box-shadow: inset 0 -4px 0 rgba(0,0,0,0.15);
+  }
+  .flame {
+    position: absolute; left: -38px; top: 50%; width: 46px; height: 34px; margin-top: -17px;
+    border-radius: 50% 0 0 50%; background: radial-gradient(circle at 80% 50%, #fff3b0, #ffb13b 45%, #ff5a36 75%, transparent 76%);
+    animation: flicker 0.25s ease-in-out infinite alternate; transform-origin: right center;
+  }
+  @keyframes flicker { to { transform: scaleX(0.75) scaleY(0.9); opacity: 0.85; } }
+  .rooms { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .room {
+    position: relative; min-height: 92px; padding: 8px 4px; border-radius: 14px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    color: #fff; text-align: center; overflow: hidden;
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,0.25), inset 0 0 0 3px rgba(0,0,0,0.12);
+  }
+  .room .emoji { font-size: 30px; line-height: 1; }
+  .room .label { font-weight: 800; font-size: 12px; text-shadow: 0 1px 0 rgba(0,0,0,0.3); }
+  .room .residents { font-size: 15px; letter-spacing: -2px; min-height: 18px; }
+  .room.broken {
+    background-color: var(--broken);
+    background-image: repeating-linear-gradient(135deg, rgba(0,0,0,0.12) 0 6px, transparent 6px 14px);
+    color: var(--muted);
+  }
+  .room.broken .emoji { filter: grayscale(1) brightness(0.7); opacity: 0.6; }
+  .room.broken .cost { font-size: 12px; font-weight: 800; color: var(--accent); }
+  .room.locked { opacity: 0.55; }
+  .room.just-fixed { animation: fixed 0.8s ease-out; }
+  @keyframes fixed { 0% { transform: scale(0.7); filter: brightness(2.5); } 60% { transform: scale(1.12); } }
+  .room.bridge { background-color: #4c7bd9; }
+  .room.animals { background-color: #e0789e; }
+  .room.garden { background-color: #4caf6a; }
+  .room.engine { background-color: #e0823c; }
+  .room.kitchen { background-color: #d9a43c; }
+  .room.observatory { background-color: #7a5bd9; }
+  .room:not(.broken) { background-image: radial-gradient(circle at 50% 20%, rgba(255,255,255,0.35), transparent 60%); }
+  .hub-actions { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .play-btn { font-size: 20px; padding: 18px; }
+  .play-btn.pulse { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.03); box-shadow: 0 0 26px rgba(255, 207, 90, 0.6); } }
+  .hub-nav { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hint { color: var(--muted); font-size: 14px; text-align: center; margin: 0; }
+
+  /* ---------- Logbook ---------- */
+  .topbar { width: 100%; display: flex; align-items: center; gap: 10px; }
+  .topbar h2 { flex: 1; font-size: 24px; }
+  .log-list { width: 100%; display: flex; flex-direction: column; gap: 22px; padding-top: 12px; }
+  .log-empty { color: var(--muted); text-align: center; }
+
+  /* ---------- Game ---------- */
+  #screen-game { touch-action: none; }
+  header { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .hud-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  #status { font-weight: 800; }
+  #status small { display: block; color: var(--muted); font-weight: 700; font-size: 13px; }
+  .score { font: 800 30px var(--font-display); color: var(--accent); line-height: 1; font-variant-numeric: tabular-nums; }
+  .score.bump { animation: bump 0.3s ease-out; }
+  @keyframes bump { 50% { transform: scale(1.25); } }
+  #goal { width: 100%; height: 10px; background: var(--panel); border-radius: 5px; overflow: hidden; }
+  #goal-fill { height: 100%; width: 0; transition: width 0.3s; background: linear-gradient(90deg, var(--teal), #4fd17a, var(--accent)); }
+  #combo {
+    height: 26px; font: 800 20px var(--font-display); opacity: 0; color: var(--accent);
+    text-shadow: 0 0 14px rgba(255, 207, 90, 0.6); transition: opacity 0.2s;
+  }
+  #combo.pop { animation: combo-pop 0.4s ease-out; }
+  @keyframes combo-pop { 0% { transform: scale(0.5); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
+  #board {
+    --size: min(calc(100vw - 32px), 420px);
+    width: var(--size); height: var(--size);
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px;
+    padding: 6px; background: var(--panel); border-radius: 16px;
+    box-shadow: 0 0 40px rgba(62, 199, 182, 0.25);
+  }
+  #board.shake { animation: shake 0.35s ease-out; }
+  @keyframes shake {
+    20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); }
+    60% { transform: translate(-4px, 2px); } 80% { transform: translate(2px, -1px); }
+  }
+  .cell { background: var(--cell); border-radius: 6px; box-shadow: inset 0 0 0 1px var(--cell-line); }
+  .block {
+    border-radius: 6px;
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0) 55%);
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,0.22), inset 0 2px 0 rgba(255,255,255,0.45);
+  }
+  .cell.placed { animation: land 0.3s ease-out; }
+  @keyframes land { 0% { transform: scale(1.25); filter: brightness(1.8); } }
+  .cell.ghost { background: var(--ghost-ok); }
+  .cell.will-clear { filter: brightness(1.6); }
+  .cell.clearing { animation: pop 0.35s ease-out forwards; }
+  @keyframes pop { 50% { transform: scale(1.2); filter: brightness(2.2); } 100% { transform: scale(0) rotate(30deg); opacity: 0; } }
+  .cell.hit { animation: hit 0.35s ease-out; }
+  @keyframes hit { 30% { transform: scale(0.8) rotate(-8deg); filter: brightness(1.8); } 60% { transform: scale(1.1) rotate(6deg); } }
+
+  /* Obstacles look different on every planet: o1 goes with one clear, o2 needs two. */
+  .cell.o1, .cell.o2 { border-radius: 10px; }
+  [data-planet="moos"] .cell.o1 {
+    background-color: #2f9e44;
+    background-image:
+      radial-gradient(circle at 30% 34%, #8ce99a 0 15%, transparent 16%),
+      radial-gradient(circle at 68% 28%, #b2f2bb 0 12%, transparent 13%),
+      radial-gradient(circle at 50% 58%, #69db7c 0 24%, transparent 25%),
+      radial-gradient(circle at 20% 72%, #51cf66 0 17%, transparent 18%),
+      radial-gradient(circle at 80% 70%, #51cf66 0 18%, transparent 19%);
+    box-shadow: inset 0 -5px 0 #1e6b34, inset 0 2px 0 rgba(255,255,255,0.3);
+  }
+  [data-planet="moos"] .cell.o2 {
+    background-color: #1e6b34;
+    background-image:
+      radial-gradient(circle at 28% 30%, #ff6b8b 0 8%, transparent 9%),
+      radial-gradient(circle at 72% 40%, #ff6b8b 0 8%, transparent 9%),
+      radial-gradient(circle at 46% 72%, #ff6b8b 0 8%, transparent 9%),
+      radial-gradient(circle at 50% 55%, #40c057 0 34%, transparent 35%);
+    box-shadow: inset 0 -5px 0 #0f3d1d, inset 0 0 0 2px #0f3d1d;
+  }
+  [data-planet="frost"] .cell.o1 {
+    background-color: #e8f4ff;
+    background-image:
+      radial-gradient(circle at 30% 70%, #ffffff 0 22%, transparent 23%),
+      radial-gradient(circle at 66% 62%, #ffffff 0 26%, transparent 27%),
+      radial-gradient(circle at 48% 40%, #f6fbff 0 22%, transparent 23%);
+    box-shadow: inset 0 -5px 0 #a9c9ea, inset 0 2px 0 #fff;
+  }
+  [data-planet="frost"] .cell.o2 {
+    border-radius: 4px;
+    background-color: #7cc6f2;
+    background-image: linear-gradient(135deg, rgba(255,255,255,0.75) 0 18%, transparent 19% 48%, rgba(255,255,255,0.35) 49% 56%, transparent 57%),
+      linear-gradient(180deg, rgba(255,255,255,0.3), transparent);
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.7), inset 0 -5px 0 #3d8fc4, 0 0 10px rgba(124, 198, 242, 0.5);
+  }
+
+  #tray { width: 100%; min-height: 128px; display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center; }
+  .slot { width: 100%; height: 118px; display: flex; align-items: center; justify-content: center; }
+  .piece { display: grid; gap: 2px; cursor: grab; touch-action: none; animation: deal 0.35s ease-out backwards; }
+  .slot:nth-child(2) .piece { animation-delay: 0.06s; }
+  .slot:nth-child(3) .piece { animation-delay: 0.12s; }
+  @keyframes deal { from { transform: translateY(30px) scale(0.6); opacity: 0; } }
+  .piece.unfit { opacity: 0.35; }
+  .piece.hidden { visibility: hidden; }
+  #drag { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 10; display: grid; gap: 3px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.4)); }
+  #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+  .floater {
+    position: fixed; z-index: 31; pointer-events: none; font: 800 24px var(--font-display);
+    color: var(--accent); text-shadow: 0 2px 0 rgba(0,0,0,0.35);
+    transform: translate(-50%, -50%); animation: float-up 0.9s ease-out forwards;
+  }
+  @keyframes float-up {
+    0% { opacity: 0; transform: translate(-50%, -30%) scale(0.6); }
+    20% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%, -160%); }
+  }
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 40;
+    background: var(--panel-solid); padding: 12px 18px; border-radius: 12px;
+    width: max-content; max-width: calc(100vw - 32px); text-align: center; font-weight: 700;
+  }
+
+  /* ---------- Dialogs ---------- */
+  #overlay {
+    position: fixed; inset: 0; background: rgba(8, 5, 25, 0.78);
+    display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px;
+  }
+  #overlay.show { display: flex; }
+  .dialog {
+    background: var(--panel-solid); padding: 24px 20px; border-radius: 20px; text-align: center;
+    width: min(360px, 100%); max-height: 100%; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 10px; animation: screen-in 0.25s ease-out;
+    box-shadow: 0 0 50px rgba(62, 199, 182, 0.25);
+  }
+  .dialog.paper { background: transparent; box-shadow: none; padding: 20px 0 0; }
+  .dialog p { color: var(--muted); margin: 0; }
+  .dialog h2 { font-size: 26px; }
+  .big-emoji { font-size: 56px; line-height: 1; }
+  .stars { font-size: 40px; letter-spacing: 6px; }
+  .stars span { display: inline-block; color: #4b3f78; }
+  .stars span.on { color: var(--accent); text-shadow: 0 0 16px rgba(255, 207, 90, 0.8); animation: star-in 0.5s ease-out backwards; }
+  .stars span:nth-child(2).on { animation-delay: 0.25s; }
+  .stars span:nth-child(3).on { animation-delay: 0.5s; }
+  @keyframes star-in { from { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.4); } }
+  .reward { font: 800 22px var(--font-display); color: var(--accent); }
+  .animal-card {
+    display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; text-align: left;
+    background: rgba(224, 120, 158, 0.25); box-shadow: inset 0 0 0 2px rgba(224, 120, 158, 0.6);
+  }
+  .animal-card .emoji { font-size: 42px; }
+  .animal-card b { display: block; font-family: var(--font-display); font-size: 18px; }
+  .animal-card span { color: var(--muted); font-size: 14px; }
+  .animal-list { display: flex; flex-direction: column; gap: 10px; }
+  .animal-list .animal-card { cursor: pointer; }
+  .ad-box {
+    padding: 36px 12px; border-radius: 12px; font-weight: 800;
+    background: repeating-linear-gradient(45deg, #3a2a6e, #3a2a6e 12px, #33245f 12px, #33245f 24px);
+    color: var(--muted);
+  }
+  #ad-count { font-size: 40px; color: var(--text); display: block; margin-top: 6px; }
+  .rescue { background: linear-gradient(135deg, #3ec7b6, #4fd17a); color: #062b22; }
+
+  /* Warp flight between planets */
+  #warp {
+    position: fixed; inset: 0; z-index: 25; display: none; align-items: center; justify-content: center;
+    font: 800 28px var(--font-display); text-shadow: 0 0 20px rgba(255,255,255,0.6);
+    background: rgba(7, 5, 26, 0.55);
+  }
+  #warp.show { display: flex; }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    .title-ark, .ark-wrap, .flame, .play-btn.pulse, .piece { animation: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<!-- Title -->
+<div class="screen" id="screen-title">
+  <div class="title-ark">🚀</div>
+  <h1 class="title-name">Omas Arche</h1>
+  <p class="title-sub">Repariere Omas altes Raumschiff und rette Tiere von fernen Planeten.</p>
+  <div class="actions">
+    <button class="primary play-btn pulse" id="btn-start">Spielen</button>
+  </div>
+</div>
+
+<!-- Intro letter -->
+<div class="screen" id="screen-intro" hidden>
+  <div class="letter" id="intro-letter"></div>
+  <button class="primary" id="btn-intro-done">Zur Arche</button>
+</div>
+
+<!-- Ark hub -->
+<div class="screen" id="screen-ark" hidden>
+  <div class="hub-head">
+    <h2 class="planet-name" id="planet-name"></h2>
+    <span class="pill" id="parts">⚙️ 0</span>
+  </div>
+  <div class="ark-wrap">
+    <div class="ark" id="ark">
+      <div class="ark-fin"></div>
+      <div class="flame" id="flame" hidden></div>
+      <div class="rooms" id="rooms"></div>
+    </div>
+  </div>
+  <p class="hint" id="hub-hint"></p>
+  <div class="hub-actions">
+    <button class="primary play-btn" id="btn-play"></button>
+    <div class="hub-nav">
+      <button class="secondary" id="btn-log">📖 Logbuch</button>
+      <button class="secondary" id="btn-animals">🐾 Tiere</button>
+    </div>
+  </div>
+</div>
+
+<!-- Logbook -->
+<div class="screen" id="screen-log" hidden>
+  <div class="topbar">
+    <button class="icon-btn" id="btn-log-back" aria-label="Zurück">←</button>
+    <h2>Omas Logbuch</h2>
+  </div>
+  <div class="log-list" id="log-list"></div>
+</div>
+
+<!-- Game -->
+<div class="screen" id="screen-game" hidden>
+  <header>
+    <div class="hud-left">
+      <button class="icon-btn" id="btn-pause" aria-label="Pause">⏸</button>
+      <div id="status"></div>
+    </div>
+    <div class="score" id="score">0</div>
+  </header>
+  <div id="goal"><div id="goal-fill"></div></div>
+  <div id="combo"></div>
+  <div id="board"></div>
+  <div id="tray"></div>
+</div>
+
+<div id="drag"></div>
+<canvas id="fx"></canvas>
+<div id="warp"></div>
+<div id="toast" hidden></div>
+
+<div id="overlay">
+  <div class="dialog" id="dlg-pause" hidden>
+    <h2>Pause</h2>
+    <button class="primary" id="btn-resume">Weiterspielen</button>
+    <button class="secondary" id="btn-restart">Neu starten</button>
+    <button class="secondary" id="btn-sound"></button>
+    <button class="secondary" id="btn-pause-ark">Zur Arche</button>
+  </div>
+  <div class="dialog" id="dlg-over" hidden>
+    <div class="big-emoji">😿</div>
+    <h2>Kein Platz mehr!</h2>
+    <p id="over-text"></p>
+    <button class="rescue" id="btn-revive">Weiterspielen<small id="revive-info"></small></button>
+    <button class="secondary" id="btn-retry">Nochmal</button>
+    <button class="secondary" id="btn-over-ark">Zur Arche</button>
+  </div>
+  <div class="dialog" id="dlg-win" hidden>
+    <h2>Geschafft!</h2>
+    <div class="stars" id="win-stars"><span>★</span><span>★</span><span>★</span></div>
+    <div class="reward" id="win-parts"></div>
+    <div id="win-animal"></div>
+    <button class="primary" id="btn-win-ark">Zur Arche</button>
+  </div>
+  <div class="dialog" id="dlg-room" hidden>
+    <div class="big-emoji" id="room-emoji"></div>
+    <h2 id="room-name"></h2>
+    <p id="room-text"></p>
+    <button class="primary" id="btn-repair"></button>
+    <button class="secondary" id="btn-room-close">Später</button>
+  </div>
+  <div class="dialog paper" id="dlg-letter" hidden>
+    <div class="letter" id="letter"></div>
+    <button class="primary" id="btn-letter-close">Weiter</button>
+  </div>
+  <div class="dialog" id="dlg-animals" hidden>
+    <h2>Tiere an Bord</h2>
+    <p id="animals-hint"></p>
+    <div class="animal-list" id="animal-list"></div>
+    <button class="secondary" id="btn-animals-close">Schließen</button>
+  </div>
+  <div class="dialog" id="dlg-ad" hidden>
+    <h2>Werbung</h2>
+    <div class="ad-box">Platzhalter für eine Belohnungs-Werbung<span id="ad-count">3</span></div>
+    <p id="ad-reward"></p>
+    <button class="primary" id="btn-ad-done" hidden>Belohnung abholen</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const SIZE = 8;
+  const COLORS = ['#ff6b8b', '#ffa94d', '#ffd43b', '#69db7c', '#4dabf7', '#9775fa', '#f783ac'];
+
+  // ---------- Story content ----------
+  const GRANDMA = 'Deine Oma Hilde';
+  const INTRO_LETTER = {
+    title: 'Mein liebes Enkelkind,',
+    text: [
+      'wenn du diesen Brief liest, gehört die Arche dir. Sie ist alt, sie klappert, und in der Küche tropft es. Aber sie hat über zweihundert Tiere sicher nach Hause gebracht.',
+      'Auf dem Moosmond warten noch welche auf Hilfe. Die Büsche dort wachsen so schnell, dass die Tiere nicht mehr herauskommen.',
+      'Ich weiß, dass du das schaffst. Du warst schon als Kind die Mutigste von allen.',
+    ],
+  };
+
+  // o1 = obstacle that goes with one clear, o2 = needs two clears.
+  const PLANETS = [
+    {
+      id: 'moos', name: 'Moosmond', tagline: 'Ein grüner Mond voller wilder Büsche',
+      colors: ['#7bd389', '#2f9e44', '#1e6b34'], obstacle: 'Büsche', icon: '🌿',
+      levels: [
+        ['........','........','........','........','........','........','........','##.##.##'],
+        ['........','........','........','........','........','........','#..##..#','##....##'],
+        ['........','........','...##...','..####..','..####..','...##...','........','........'],
+        ['#.......','.#......','..#.....','...@....','....@...','.....#..','......#.','.......#'],
+        ['.@....@.','.#....#.','.#....#.','........','........','.#....#.','.#....#.','.@....@.'],
+      ],
+    },
+    {
+      id: 'frost', name: 'Frostia', tagline: 'Ein Eisplanet mit Schneewehen und Eisblöcken',
+      colors: ['#d8f0ff', '#7cc6f2', '#3d8fc4'], obstacle: 'Schnee und Eis', icon: '❄️',
+      levels: [
+        ['........','........','........','........','........','........','.@....@.','#@#..#@#'],
+        ['........','.#....#.','........','...@@...','...@@...','........','.#....#.','........'],
+        ['@......@','.#....#.','........','........','........','........','.#....#.','@......@'],
+        ['........','........','........','........','#.@.#.@.','.#.#.#.#','@.#.@.#.','.#.#.#.#'],
+        ['........','.@####@.','.#....#.','.#....#.','.#....#.','.#....#.','.@####@.','........'],
+      ],
+    },
+  ];
+  const LEVELS = PLANETS.flatMap((planet, p) => planet.levels.map((map, i) => ({ map, planet: p, number: i + 1 })));
+  const levelIndex = (p, i) => PLANETS.slice(0, p).reduce((n, pl) => n + pl.levels.length, 0) + i;
+
+  // Animals rescued by winning a level for the first time, keyed by level index.
+  const ANIMALS = {
+    1: { emoji: '🐇', name: 'Mondhase', text: 'Hoppelt nachts über die Brücke und klaut Socken.' },
+    3: { emoji: '🦊', name: 'Moosfuchs', text: 'Hat Moos statt Fell und riecht nach Regen.' },
+    4: { emoji: '🐌', name: 'Glühschnecke', text: 'Leuchtet, wenn sie glücklich ist. Also fast immer.' },
+    6: { emoji: '🐧', name: 'Frostpinguin', text: 'Rutscht lieber, als zu laufen. Auch in der Küche.' },
+    9: { emoji: '🦦', name: 'Eisotter', text: 'Hält beim Schlafen gern jemandem die Pfote.' },
+  };
+
+  // Rooms: repaired with spare parts; each repair unlocks one of Grandma's letters.
+  const ROOMS = [
+    { id: 'engine', name: 'Antrieb', emoji: '🔥', cost: 6, planet: 0,
+      letter: ['Der Antrieb brummt wieder! Weißt du noch, wie du als Kind unbedingt mitfliegen wolltest? Jetzt fliegst du selbst.', 'Sobald alle Tiere vom Moosmond in Sicherheit sind: nächster Halt Frostia. Zieh dich warm an.'] },
+    { id: 'garden', name: 'Gewächshaus', emoji: '🌱', cost: 5, planet: 0,
+      letter: ['Ohne Gewächshaus kein Futter. Die blauen Tomaten schmecken scheußlich, aber die Moosfüchse lieben sie.', 'Gieß sie morgens, dann singen sie ein bisschen. Wirklich.'] },
+    { id: 'bridge', name: 'Brücke', emoji: '🧭', cost: 3, planet: 0,
+      letter: ['Die Brücke! Hier habe ich jeden Morgen Kakao getrunken und den Sternen Namen gegeben.', 'Der hellste da links heißt nach dir. Schau mal nach.'] },
+    { id: 'observatory', name: 'Sternwarte', emoji: '🔭', cost: 8, planet: 1,
+      letter: ['Von der Sternwarte aus siehst du alle Planeten, die noch Hilfe brauchen. Es sind viele.', 'Aber du bist nicht allein. Die Tiere passen auf dich auf, so wie sie auf mich aufgepasst haben.'] },
+    { id: 'kitchen', name: 'Küche', emoji: '🍳', cost: 6, planet: 1,
+      letter: ['In der Küche steht mein Rezeptbuch. Seite 12: Sternenpfannkuchen.', 'Die gelingen nie beim ersten Mal, und das ist in Ordnung. Das Wichtigste ist, dass man es nochmal versucht.'] },
+    { id: 'animals', name: 'Tierstation', emoji: '🐾', cost: 4, planet: 0,
+      letter: ['In der Tierstation hat jedes Tier ein eigenes Körbchen. Die Kissen habe ich selbst genäht, man sieht es leider.', 'Wer hier einzieht, gehört zur Familie.'] },
+  ];
+  const roomById = id => ROOMS.find(r => r.id === id);
+
+  // ---------- Save data ----------
+  const SAVE_KEY = 'omas-arche';
+  const fresh = () => ({ parts: 0, repaired: [], stars: {}, planet: 0, introSeen: false, animals: [], muted: false });
+  function load() {
+    try { return { ...fresh(), ...JSON.parse(localStorage.getItem(SAVE_KEY) || '{}') }; } catch { return fresh(); }
+  }
+  function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch {} }
+  const state = load();
+
+  const $ = id => document.getElementById(id);
+  const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- Sound ----------
+  let audio = null;
+  function getAudio() {
+    if (!audio) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      audio = new Ctx();
+    }
+    if (audio.state === 'suspended') audio.resume();
+    return audio;
+  }
+  function tone(freq, start, duration, { type = 'sine', volume = 0.15, slideTo = null } = {}) {
+    if (state.muted) return;
+    const ctx = getAudio();
+    if (!ctx) return;
+    const t = ctx.currentTime + start;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + duration);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(volume, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + duration + 0.02);
+  }
+  const vary = f => f * (0.95 + Math.random() * 0.1);
+  const NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66];
+  const sfx = {
+    pick: () => tone(vary(660), 0, 0.05, { type: 'triangle', volume: 0.08 }),
+    place: () => tone(vary(180), 0, 0.12, { type: 'triangle', volume: 0.25, slideTo: 90 }),
+    invalid: () => tone(140, 0, 0.15, { type: 'square', volume: 0.05, slideTo: 100 }),
+    clear(n, streak) {
+      for (let i = 0; i < 2 + n; i++) tone(NOTES[Math.min(Math.min(streak - 1, 2) + i, NOTES.length - 1)], i * 0.07, 0.25, { type: 'triangle', volume: 0.12 });
+    },
+    obstacle: () => [0, 0.04, 0.08].forEach(t => tone(vary(1800), t, 0.06, { type: 'triangle', volume: 0.04, slideTo: 1200 })),
+    over: () => [392, 330, 262, 196].forEach((f, i) => tone(f, i * 0.16, 0.3, { type: 'sawtooth', volume: 0.06 })),
+    win: () => [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.12, 0.3, { type: 'triangle', volume: 0.14 })),
+    star: i => tone(1046.5 * Math.pow(1.26, i), 0, 0.3, { type: 'triangle', volume: 0.12 }),
+    repair: () => [0, 0.09, 0.18].forEach((t, i) => tone(300 + i * 150, t, 0.12, { type: 'square', volume: 0.05 })),
+    pet: () => tone(vary(900), 0, 0.15, { type: 'sine', volume: 0.1, slideTo: 1300 }),
+    click: () => tone(880, 0, 0.04, { type: 'triangle', volume: 0.06 }),
+    warp: () => tone(120, 0, 1.6, { type: 'sawtooth', volume: 0.05, slideTo: 900 }),
+  };
+
+  // ---------- Screens & dialogs ----------
+  const SCREENS = ['screen-title', 'screen-intro', 'screen-ark', 'screen-log', 'screen-game'];
+  const DIALOGS = ['dlg-pause', 'dlg-over', 'dlg-win', 'dlg-room', 'dlg-letter', 'dlg-animals', 'dlg-ad'];
+  const overlay = $('overlay');
+  let currentScreen = 'screen-title';
+
+  function showScreen(id) {
+    overlay.classList.remove('show');
+    for (const s of SCREENS) $(s).hidden = s !== id;
+    const el = $(id);
+    el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter');
+    currentScreen = id;
+    if (id === 'screen-ark') renderArk();
+    if (id === 'screen-log') renderLog();
+    window.scrollTo(0, 0);
+  }
+  function showDialog(id) {
+    for (const d of DIALOGS) $(d).hidden = d !== id;
+    overlay.classList.add('show');
+  }
+  const closeDialog = () => overlay.classList.remove('show');
+
+  function letterHtml(title, paragraphs) {
+    return `<h3>${title}</h3>${paragraphs.map(p => `<p>${p}</p>`).join('')}<p class="sign">${GRANDMA}</p>`;
+  }
+
+  let toastTimer;
+  function toast(text, ms = 2500) {
+    const el = $('toast');
+    el.textContent = text; el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, ms);
+  }
+
+  // ---------- Background: space with the current planet ----------
+  const bg = $('bg'), bgCtx = bg.getContext('2d');
+  let stars = [], warpUntil = 0;
+
+  function resizeCanvas(canvas, ctx) {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function initStars() {
+    stars = Array.from({ length: Math.round(innerWidth * innerHeight / 3500) }, () => ({
+      x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+      r: 0.4 + Math.random() * 1.4, phase: Math.random() * 6.3, speed: 0.5 + Math.random() * 1.5, depth: 0.3 + Math.random(),
+    }));
+  }
+
+  function drawPlanet(t) {
+    const p = PLANETS[state.planet];
+    const r = Math.min(innerWidth, innerHeight) * 0.55;
+    const x = innerWidth * 0.85, y = innerHeight + r * 0.35;
+    const glow = bgCtx.createRadialGradient(x, y, r * 0.9, x, y, r * 1.35);
+    glow.addColorStop(0, p.colors[0] + '66'); glow.addColorStop(1, 'transparent');
+    bgCtx.fillStyle = glow; bgCtx.fillRect(0, 0, innerWidth, innerHeight);
+    const body = bgCtx.createRadialGradient(x - r * 0.4, y - r * 0.5, r * 0.1, x, y, r);
+    body.addColorStop(0, p.colors[0]); body.addColorStop(0.6, p.colors[1]); body.addColorStop(1, p.colors[2]);
+    bgCtx.fillStyle = body;
+    bgCtx.beginPath(); bgCtx.arc(x, y, r, 0, Math.PI * 2); bgCtx.fill();
+    // Slowly drifting surface spots
+    bgCtx.save();
+    bgCtx.beginPath(); bgCtx.arc(x, y, r, 0, Math.PI * 2); bgCtx.clip();
+    bgCtx.fillStyle = 'rgba(255,255,255,0.12)';
+    for (let i = 0; i < 7; i++) {
+      const a = i * 0.9 + t * 0.00003;
+      bgCtx.beginPath();
+      bgCtx.ellipse(x + Math.cos(a) * r * 0.6, y - r * 0.55 + Math.sin(i * 2.1) * r * 0.25, r * 0.12, r * 0.06, 0, 0, Math.PI * 2);
+      bgCtx.fill();
+    }
+    bgCtx.restore();
+  }
+
+  function stepBg(t) {
+    const w = innerWidth, h = innerHeight;
+    const sky = bgCtx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#07051a'); sky.addColorStop(0.6, '#171042'); sky.addColorStop(1, '#2a1660');
+    bgCtx.fillStyle = sky; bgCtx.fillRect(0, 0, w, h);
+    const warping = t < warpUntil;
+    for (const s of stars) {
+      if (warping) {
+        // Stars stretch into streaks flying out from the centre
+        const dx = s.x - w / 2, dy = s.y - h / 2;
+        s.x += dx * 0.06 * s.depth; s.y += dy * 0.06 * s.depth;
+        if (s.x < 0 || s.x > w || s.y < 0 || s.y > h) { s.x = w / 2 + (Math.random() - 0.5) * 40; s.y = h / 2 + (Math.random() - 0.5) * 40; }
+        bgCtx.strokeStyle = 'rgba(255,255,255,0.8)'; bgCtx.lineWidth = s.r;
+        bgCtx.beginPath(); bgCtx.moveTo(s.x, s.y); bgCtx.lineTo(s.x - dx * 0.08, s.y - dy * 0.08); bgCtx.stroke();
+      } else {
+        bgCtx.globalAlpha = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t / 1000 * s.speed + s.phase));
+        bgCtx.fillStyle = '#fff';
+        bgCtx.beginPath(); bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2); bgCtx.fill();
+        bgCtx.globalAlpha = 1;
+      }
+    }
+    if (!warping) drawPlanet(t);
+    if (!reducedMotion() || warping) requestAnimationFrame(stepBg);
+  }
+
+  // ---------- Effects ----------
+  const fx = $('fx'), fxCtx = fx.getContext('2d');
+  let particles = [], fxRunning = false;
+  function onResize() { resizeCanvas(bg, bgCtx); resizeCanvas(fx, fxCtx); initStars(); if (reducedMotion()) stepBg(0); }
+  window.addEventListener('resize', onResize);
+  onResize();
+  requestAnimationFrame(stepBg);
+
+  function burst(x, y, color, count, speed = 5, shape = 'mix') {
+    if (reducedMotion()) count = Math.ceil(count / 4);
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2, v = (0.4 + Math.random()) * speed;
+      particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2, g: 0.18, size: 3 + Math.random() * 5, color,
+        life: 1, decay: 0.018 + Math.random() * 0.02, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3,
+        shape: shape === 'mix' ? (Math.random() < 0.6 ? 'square' : 'dot') : shape });
+    }
+    startFx();
+  }
+  function hearts(x, y) {
+    for (let i = 0; i < 8; i++) {
+      particles.push({ x: x + (Math.random() - 0.5) * 30, y, vx: (Math.random() - 0.5) * 1.5, vy: -2 - Math.random() * 2, g: -0.01,
+        size: 14 + Math.random() * 8, color: '#ff6b8b', life: 1, decay: 0.015, rot: 0, vr: 0, shape: 'heart' });
+    }
+    startFx();
+  }
+  function confetti() {
+    const n = reducedMotion() ? 40 : 150;
+    for (let i = 0; i < n; i++) {
+      particles.push({ x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.5, vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 3,
+        g: 0.05, size: 6 + Math.random() * 6, color: COLORS[i % COLORS.length], life: 1, decay: 0.005, rot: Math.random() * 6,
+        vr: (Math.random() - 0.5) * 0.4, shape: 'square' });
+    }
+    startFx();
+  }
+  function startFx() {
+    if (particles.length > 600) particles = particles.slice(-600);
+    if (!fxRunning) { fxRunning = true; requestAnimationFrame(stepFx); }
+  }
+  function stepFx() {
+    fxCtx.clearRect(0, 0, innerWidth, innerHeight);
+    particles = particles.filter(p => p.life > 0 && p.y < innerHeight + 40);
+    for (const p of particles) {
+      p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= p.decay;
+      fxCtx.save();
+      fxCtx.globalAlpha = Math.max(0, p.life);
+      fxCtx.fillStyle = p.color;
+      fxCtx.translate(p.x, p.y); fxCtx.rotate(p.rot);
+      if (p.shape === 'square') fxCtx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      else if (p.shape === 'heart') { fxCtx.font = `${p.size}px sans-serif`; fxCtx.textAlign = 'center'; fxCtx.fillText('❤', 0, 0); }
+      else { fxCtx.beginPath(); fxCtx.arc(0, 0, p.size / 2, 0, Math.PI * 2); fxCtx.fill(); }
+      fxCtx.restore();
+    }
+    if (particles.length) requestAnimationFrame(stepFx);
+    else { fxRunning = false; fxCtx.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+  function floatText(text, x, y) {
+    const el = document.createElement('div');
+    el.className = 'floater'; el.textContent = text;
+    el.style.left = x + 'px'; el.style.top = y + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+  const centerOf = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+
+  // ---------- Ark hub ----------
+  const isRepaired = id => state.repaired.includes(id);
+  const planetLevels = p => PLANETS[p].levels.map((_, i) => levelIndex(p, i));
+  const planetDone = p => planetLevels(p).every(i => state.stars[i]);
+  const nextLevel = () => planetLevels(state.planet).find(i => !state.stars[i]);
+
+  function renderArk() {
+    const planet = PLANETS[state.planet];
+    $('planet-name').innerHTML = `${planet.name}<small>${planet.tagline}</small>`;
+    $('parts').textContent = `⚙️ ${state.parts}`;
+    $('flame').hidden = !isRepaired('engine');
+
+    const roomsEl = $('rooms');
+    roomsEl.innerHTML = '';
+    for (const room of ROOMS) {
+      const el = document.createElement('button');
+      const fixed = isRepaired(room.id);
+      const locked = room.planet > state.planet;
+      el.className = `room ${room.id}` + (fixed ? '' : ' broken') + (locked ? ' locked' : '');
+      el.dataset.room = room.id;
+      let extra = '';
+      if (fixed && room.id === 'animals') extra = `<span class="residents">${state.animals.map(i => ANIMALS[i].emoji).join('')}</span>`;
+      else if (!fixed) extra = `<span class="cost">${locked ? '🔒 ' + PLANETS[room.planet].name : '🔧 ⚙️ ' + room.cost}</span>`;
+      el.innerHTML = `<span class="emoji">${room.emoji}</span><span class="label">${room.name}</span>${extra}`;
+      el.setAttribute('aria-label', `${room.name}${fixed ? ', repariert' : locked ? ', gesperrt' : `, kaputt, kostet ${room.cost} Ersatzteile`}`);
+      el.addEventListener('click', () => { sfx.click(); openRoom(room); });
+      roomsEl.appendChild(el);
+    }
+
+    // The main button: next level, fly on, or the end of the prototype
+    const btn = $('btn-play');
+    const next = nextLevel();
+    const last = state.planet === PLANETS.length - 1;
+    btn.disabled = false;
+    btn.classList.add('pulse');
+    btn.className = 'primary play-btn pulse';
+    if (next !== undefined) {
+      btn.innerHTML = `▶ Level ${LEVELS[next].number} spielen<small>${planet.name} · ${planet.obstacle} abräumen</small>`;
+      btn.onclick = () => { sfx.click(); startLevel(next); };
+    } else if (!last && isRepaired('engine')) {
+      btn.className = 'go play-btn pulse';
+      btn.innerHTML = `🚀 Nach ${PLANETS[state.planet + 1].name} fliegen`;
+      btn.onclick = flyOn;
+    } else if (!last) {
+      btn.innerHTML = `Repariere den Antrieb 🔥<small>Dann kann die Arche weiterfliegen</small>`;
+      btn.disabled = true;
+    } else {
+      btn.innerHTML = `✨ Alle Tiere gerettet<small>Mehr Planeten kommen bald</small>`;
+      btn.disabled = true;
+    }
+
+    const repairable = ROOMS.filter(r => !isRepaired(r.id) && r.planet <= state.planet);
+    const affordable = repairable.filter(r => r.cost <= state.parts);
+    $('hub-hint').textContent = affordable.length
+      ? `Du hast genug Ersatzteile für: ${affordable.map(r => r.name).join(', ')}. Tippe auf den Raum.`
+      : repairable.length ? 'Spiele Level, um Ersatzteile ⚙️ für die kaputten Räume zu sammeln.' : '';
+  }
+
+  let openedRoom = null;
+  function openRoom(room) {
+    openedRoom = room;
+    $('room-emoji').textContent = room.emoji;
+    $('room-name').textContent = room.name;
+    const btn = $('btn-repair');
+    if (isRepaired(room.id)) {
+      if (room.id === 'animals') return openAnimals();
+      $('room-text').textContent = 'Repariert. Oma wäre stolz.';
+      btn.textContent = '📖 Omas Brief lesen';
+      btn.disabled = false;
+      btn.onclick = () => { sfx.click(); showLetter(room); };
+    } else if (room.planet > state.planet) {
+      $('room-text').textContent = `Dieser Raum wird erst auf ${PLANETS[room.planet].name} gebraucht.`;
+      btn.textContent = '🔒 Noch gesperrt';
+      btn.disabled = true;
+    } else {
+      $('room-text').textContent = state.parts >= room.cost
+        ? 'Alles verrostet und verstaubt. Zeit, das zu ändern!'
+        : `Dir fehlen noch ${room.cost - state.parts} Ersatzteile. Spiele Level, um mehr zu sammeln.`;
+      btn.textContent = `🔧 Reparieren · ⚙️ ${room.cost}`;
+      btn.disabled = state.parts < room.cost;
+      btn.onclick = () => repair(room);
+    }
+    showDialog('dlg-room');
+  }
+
+  function repair(room) {
+    if (state.parts < room.cost || isRepaired(room.id)) return;
+    state.parts -= room.cost;
+    state.repaired.push(room.id);
+    save();
+    closeDialog();
+    renderArk();
+    sfx.repair();
+    const el = document.querySelector(`.room[data-room="${room.id}"]`);
+    el.classList.add('just-fixed');
+    const [x, y] = centerOf(el);
+    burst(x, y, '#ffcf5a', 30, 6);
+    burst(x, y, '#ffffff', 15, 4, 'dot');
+    setTimeout(() => showLetter(room), 900);
+  }
+
+  function showLetter(room) {
+    $('letter').innerHTML = letterHtml(`${room.name}`, room.letter);
+    showDialog('dlg-letter');
+  }
+
+  function openAnimals() {
+    const list = $('animal-list');
+    list.innerHTML = '';
+    $('animals-hint').textContent = !state.animals.length
+      ? 'Noch niemand an Bord. Gewinne Level, um Tiere zu retten.'
+      : isRepaired('animals') ? 'Tippe ein Tier an, um es zu streicheln.' : 'Repariere die Tierstation, damit die Tiere ein Zuhause haben.';
+    for (const i of state.animals) {
+      const a = ANIMALS[i];
+      const card = document.createElement('div');
+      card.className = 'animal-card';
+      card.innerHTML = `<span class="emoji">${a.emoji}</span><div><b>${a.name}</b><span>${a.text}</span></div>`;
+      card.addEventListener('click', () => { sfx.pet(); const [x, y] = centerOf(card.firstChild); hearts(x, y); });
+      list.appendChild(card);
+    }
+    showDialog('dlg-animals');
+  }
+
+  function renderLog() {
+    const list = $('log-list');
+    const entries = [letterHtml(INTRO_LETTER.title, INTRO_LETTER.text)];
+    for (const id of state.repaired) { const r = roomById(id); entries.push(letterHtml(r.name, r.letter)); }
+    list.innerHTML = entries.map(e => `<div class="letter">${e}</div>`).join('') +
+      (state.repaired.length ? '' : '<p class="log-empty">Repariere Räume, um weitere Briefe von Oma zu finden.</p>');
+  }
+
+  function flyOn() {
+    if (state.planet >= PLANETS.length - 1) return;
+    sfx.warp();
+    const warp = $('warp');
+    warp.textContent = `Flug nach ${PLANETS[state.planet + 1].name} …`;
+    warp.classList.add('show');
+    warpUntil = performance.now() + 2200;
+    requestAnimationFrame(stepBg);
+    setTimeout(() => {
+      state.planet++;
+      save();
+      warp.classList.remove('show');
+      renderArk();
+      confetti();
+      toast(`Willkommen auf ${PLANETS[state.planet].name}! ❄️`);
+    }, 2300);
+  }
+
+  // ---------- Puzzle ----------
+  const SHAPES = [
+    { cells: [[0,0]], weight: 2 },
+    { cells: [[0,0],[0,1]], weight: 3 }, { cells: [[0,0],[1,0]], weight: 3 },
+    { cells: [[0,0],[0,1],[0,2]], weight: 3 }, { cells: [[0,0],[1,0],[2,0]], weight: 3 },
+    { cells: [[0,0],[0,1],[0,2],[0,3]], weight: 2 }, { cells: [[0,0],[1,0],[2,0],[3,0]], weight: 2 },
+    { cells: [[0,0],[0,1],[0,2],[0,3],[0,4]], weight: 1 }, { cells: [[0,0],[1,0],[2,0],[3,0],[4,0]], weight: 1 },
+    { cells: [[0,0],[0,1],[1,0],[1,1]], weight: 3 },
+    { cells: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]], weight: 1 },
+    { cells: [[0,0],[1,0],[1,1]], weight: 2 }, { cells: [[0,1],[1,0],[1,1]], weight: 2 },
+    { cells: [[0,0],[0,1],[1,0]], weight: 2 }, { cells: [[0,0],[0,1],[1,1]], weight: 2 },
+    { cells: [[0,0],[1,0],[2,0],[2,1]], weight: 2 }, { cells: [[0,1],[1,1],[2,1],[2,0]], weight: 2 },
+    { cells: [[0,0],[0,1],[0,2],[1,1]], weight: 2 }, { cells: [[1,0],[1,1],[1,2],[0,1]], weight: 2 },
+    { cells: [[0,0],[0,1],[1,1],[1,2]], weight: 1 }, { cells: [[0,1],[0,2],[1,0],[1,1]], weight: 1 },
+  ];
+  const TOTAL_WEIGHT = SHAPES.reduce((s, x) => s + x.weight, 0);
+  const O1 = 'o1', O2 = 'o2';
+  const isObstacle = v => v === O1 || v === O2;
+  const MAX_RESCUES = 2;
+
+  const boardEl = $('board'), trayEl = $('tray'), dragEl = $('drag'), scoreEl = $('score'), comboEl = $('combo');
+  const cellEls = [];
+  for (let i = 0; i < SIZE * SIZE; i++) {
+    const c = document.createElement('div');
+    c.className = 'cell';
+    boardEl.appendChild(c);
+    cellEls.push(c);
+  }
+
+  let grid, pieces, score, combo, level, obstaclesTotal, busy, over, rescues, handsDealt, luckyHands;
+  let justPlaced = new Set();
+
+  function randomShape() {
+    let r = Math.random() * TOTAL_WEIGHT;
+    for (const s of SHAPES) { if ((r -= s.weight) < 0) return s.cells; }
+    return SHAPES[0].cells;
+  }
+  function canPlaceOn(g, cells, row, col) {
+    return cells.every(([r, c]) => {
+      const rr = row + r, cc = col + c;
+      return rr >= 0 && rr < SIZE && cc >= 0 && cc < SIZE && !g[rr][cc];
+    });
+  }
+  const canPlace = (cells, row, col) => canPlaceOn(grid, cells, row, col);
+  function fitsAnywhere(cells) {
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (canPlace(cells, r, c)) return true;
+    return false;
+  }
+
+  // Dealer: same idea as in Klotz Kaskade. Fair hands early and on a crowded board,
+  // harder hands as a level drags on, and the best of many samples after a rescue.
+  function simulateMove(g, cells, row, col) {
+    const next = g.map(r => r.slice());
+    let contacts = 0;
+    const own = new Set(cells.map(([r, c]) => (row + r) * SIZE + col + c));
+    for (const [r, c] of cells) {
+      const rr = row + r, cc = col + c;
+      next[rr][cc] = 1;
+      for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        const nr = rr + dr, nc = cc + dc;
+        if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) contacts++;
+        else if (g[nr][nc] && !own.has(nr * SIZE + nc)) contacts++;
+      }
+    }
+    const fullRows = [], fullCols = [];
+    for (let r = 0; r < SIZE; r++) if (next[r].every(Boolean)) fullRows.push(r);
+    for (let c = 0; c < SIZE; c++) if (next.every(x => x[c])) fullCols.push(c);
+    fullRows.forEach(r => next[r].fill(null));
+    fullCols.forEach(c => next.forEach(x => { x[c] = null; }));
+    return { grid: next, lines: fullRows.length + fullCols.length, contacts };
+  }
+  function bestMove(g, cells) {
+    let best = null;
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+      if (!canPlaceOn(g, cells, r, c)) continue;
+      const m = simulateMove(g, cells, r, c);
+      const value = m.lines * 100 + m.contacts;
+      if (!best || value > best.value) best = { ...m, value };
+    }
+    return best;
+  }
+  const ORDERS = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]];
+  function rateHand(hand) {
+    let best = -Infinity;
+    for (const order of ORDERS) {
+      let g = grid, lines = 0, ok = true;
+      for (const i of order) {
+        const m = bestMove(g, hand[i].cells);
+        if (!m) { ok = false; break; }
+        g = m.grid; lines += m.lines;
+      }
+      if (ok) best = Math.max(best, lines * 10 + g.reduce((n, x) => n + x.filter(v => !v).length, 0) * 0.3);
+    }
+    return best;
+  }
+  const randomHand = () => [0, 1, 2].map(() => ({ cells: randomShape(), color: COLORS[Math.floor(Math.random() * COLORS.length)] }));
+  function sampleHand(n, better) {
+    let best = null, rating = 0;
+    for (let i = 0; i < n; i++) { const h = randomHand(), r = rateHand(h); if (!best || better(r, rating)) { best = h; rating = r; } }
+    return best;
+  }
+  const pressure = () => Math.min(0.85, Math.max(0, (handsDealt - 12) / 25));
+  function fairChance() {
+    if (handsDealt < 3) return 1;
+    const filled = grid.reduce((n, x) => n + x.filter(Boolean).length, 0) / (SIZE * SIZE);
+    return (filled > 0.5 ? 0.75 : 0.45) * (1 - pressure());
+  }
+  function pickHand() {
+    if (luckyHands > 0) return sampleHand(25, (a, b) => a > b);
+    if (Math.random() < pressure()) return sampleHand(6, (a, b) => a < b);
+    if (Math.random() < fairChance()) for (let i = 0; i < 20; i++) { const h = randomHand(); if (rateHand(h) > -Infinity) return h; }
+    return randomHand();
+  }
+  function dealPieces() {
+    pieces = pickHand();
+    if (!pieces.some(p => fitsAnywhere(p.cells))) {
+      for (let i = 0; i < 50; i++) { const cells = randomShape(); if (fitsAnywhere(cells)) { pieces[0].cells = cells; break; } }
+    }
+    handsDealt++;
+    if (luckyHands > 0) luckyHands--;
+  }
+
+  const obstaclesLeft = () => grid.reduce((n, x) => n + x.filter(isObstacle).length, 0);
+
+  function renderBoard() {
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+      const i = r * SIZE + c, el = cellEls[i], v = grid[r][c];
+      el.className = 'cell';
+      el.style.backgroundColor = '';
+      if (isObstacle(v)) el.classList.add(v);
+      else if (v) { el.classList.add('block'); el.style.backgroundColor = v; if (justPlaced.has(i)) el.classList.add('placed'); }
+    }
+  }
+  function buildPieceEl(piece, size, gap) {
+    const rows = Math.max(...piece.cells.map(([r]) => r)) + 1, cols = Math.max(...piece.cells.map(([, c]) => c)) + 1;
+    const el = document.createElement('div');
+    el.className = 'piece';
+    el.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
+    el.style.gridTemplateRows = `repeat(${rows}, ${size}px)`;
+    el.style.gap = gap + 'px';
+    for (const [r, c] of piece.cells) {
+      const b = document.createElement('div');
+      b.className = 'block';
+      b.style.backgroundColor = piece.color;
+      b.style.gridRow = r + 1; b.style.gridColumn = c + 1;
+      el.appendChild(b);
+    }
+    return el;
+  }
+  function renderTray() {
+    trayEl.innerHTML = '';
+    pieces.forEach((p, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      if (p) {
+        const el = buildPieceEl(p, 20, 2);
+        if (!fitsAnywhere(p.cells)) el.classList.add('unfit');
+        el.addEventListener('pointerdown', e => startDrag(e, i, el));
+        slot.appendChild(el);
+      }
+      trayEl.appendChild(slot);
+    });
+  }
+  function renderHud() {
+    const lv = LEVELS[level], planet = PLANETS[lv.planet], left = obstaclesLeft();
+    scoreEl.textContent = score;
+    $('status').innerHTML = `${planet.name} · Level ${lv.number}<small>${left ? `${planet.icon} noch ${left}` : 'Alles frei!'}</small>`;
+    $('goal-fill').style.width = ((obstaclesTotal - left) / obstaclesTotal) * 100 + '%';
+  }
+
+  // Drag & drop
+  let drag = null;
+  function boardMetrics() {
+    const rect = boardEl.getBoundingClientRect(), pad = 6, gap = 3;
+    return { rect, pad, gap, cell: (rect.width - pad * 2 - gap * (SIZE - 1)) / SIZE };
+  }
+  function startDrag(e, index, sourceEl) {
+    if (busy || over) return;
+    e.preventDefault();
+    sfx.pick();
+    justPlaced = new Set();
+    const m = boardMetrics(), piece = pieces[index], el = buildPieceEl(piece, m.cell, m.gap);
+    dragEl.innerHTML = ''; dragEl.appendChild(el);
+    const w = el.offsetWidth, h = el.offsetHeight;
+    drag = { index, piece, sourceEl, w, h, lift: e.pointerType === 'touch' ? h + 40 : h / 2, target: null };
+    sourceEl.classList.add('hidden');
+    moveDrag(e);
+    window.addEventListener('pointermove', moveDrag);
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+  }
+  function moveDrag(e) {
+    if (!drag) return;
+    const x = e.clientX - drag.w / 2, y = e.clientY - drag.lift;
+    dragEl.style.transform = `translate(${x}px, ${y}px)`;
+    const m = boardMetrics(), step = m.cell + m.gap;
+    const col = Math.round((x - m.rect.left - m.pad) / step), row = Math.round((y - m.rect.top - m.pad) / step);
+    drag.target = canPlace(drag.piece.cells, row, col) ? { row, col } : null;
+    renderBoard();
+    if (!drag.target) return;
+    const filled = new Set(drag.piece.cells.map(([r, c]) => (row + r) * SIZE + col + c));
+    filled.forEach(i => cellEls[i].classList.add('ghost'));
+    const full = (r, c) => grid[r][c] || filled.has(r * SIZE + c);
+    for (let r = 0; r < SIZE; r++) if ([...Array(SIZE).keys()].every(c => full(r, c))) for (let c = 0; c < SIZE; c++) cellEls[r * SIZE + c].classList.add('will-clear');
+    for (let c = 0; c < SIZE; c++) if ([...Array(SIZE).keys()].every(r => full(r, c))) for (let r = 0; r < SIZE; r++) cellEls[r * SIZE + c].classList.add('will-clear');
+  }
+  function endDrag(e) {
+    window.removeEventListener('pointermove', moveDrag);
+    window.removeEventListener('pointerup', endDrag);
+    window.removeEventListener('pointercancel', endDrag);
+    dragEl.innerHTML = '';
+    if (!drag) return;
+    const { index, piece, sourceEl, target } = drag;
+    drag = null;
+    if (target) return place(index, piece, target.row, target.col);
+    if (e.type === 'pointerup' && e.clientY < boardEl.getBoundingClientRect().bottom) sfx.invalid();
+    sourceEl.classList.remove('hidden');
+    renderBoard();
+  }
+
+  function place(index, piece, row, col) {
+    const placedIdx = piece.cells.map(([r, c]) => (row + r) * SIZE + col + c);
+    for (const [r, c] of piece.cells) grid[row + r][col + c] = piece.color;
+    justPlaced = new Set(placedIdx);
+    pieces[index] = null;
+    score += piece.cells.length;
+
+    const fullRows = [], fullCols = [];
+    for (let r = 0; r < SIZE; r++) if (grid[r].every(Boolean)) fullRows.push(r);
+    for (let c = 0; c < SIZE; c++) if (grid.every(x => x[c])) fullCols.push(c);
+    const cleared = fullRows.length + fullCols.length;
+    renderBoard();
+    placedIdx.forEach(i => { const [x, y] = centerOf(cellEls[i]); burst(x, y, piece.color, 3, 2); });
+
+    if (!cleared) { combo = 0; sfx.place(); renderHud(); return afterMove(); }
+
+    combo++;
+    const gained = cleared * 10 * cleared * combo;
+    score += gained;
+    sfx.clear(cleared, combo);
+    scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump');
+    comboEl.textContent = combo > 1 ? `Combo x${combo}!` : cleared > 1 ? `${cleared} Linien!` : 'Super!';
+    comboEl.style.opacity = 1;
+    comboEl.classList.remove('pop'); void comboEl.offsetWidth; comboEl.classList.add('pop');
+    setTimeout(() => { comboEl.style.opacity = 0; }, 1200);
+
+    const toClear = new Set();
+    fullRows.forEach(r => { for (let c = 0; c < SIZE; c++) toClear.add(r * SIZE + c); });
+    fullCols.forEach(c => { for (let r = 0; r < SIZE; r++) toClear.add(r * SIZE + c); });
+    const planet = PLANETS[LEVELS[level].planet];
+    let hitObstacle = false;
+    toClear.forEach(i => {
+      const v = grid[Math.floor(i / SIZE)][i % SIZE], [x, y] = centerOf(cellEls[i]);
+      if (isObstacle(v)) {
+        hitObstacle = true;
+        cellEls[i].classList.add(v === O2 ? 'hit' : 'clearing');
+        planet.colors.forEach(color => burst(x, y, color, 5, 5 + cleared));
+      } else {
+        cellEls[i].classList.add('clearing');
+        burst(x, y, v, 7, 4 + cleared);
+      }
+    });
+    if (hitObstacle) sfx.obstacle();
+    const [fx0, fy0] = centerOf(cellEls[placedIdx[0]]);
+    floatText(`+${gained}`, fx0, fy0);
+    if ((cleared > 1 || combo > 2) && !reducedMotion()) { boardEl.classList.remove('shake'); void boardEl.offsetWidth; boardEl.classList.add('shake'); }
+
+    busy = true;
+    setTimeout(() => {
+      toClear.forEach(i => { const r = Math.floor(i / SIZE), c = i % SIZE; grid[r][c] = grid[r][c] === O2 ? O1 : null; });
+      busy = false;
+      renderHud();
+      afterMove();
+    }, 350);
+  }
+
+  function afterMove() {
+    if (pieces.every(p => !p)) dealPieces();
+    renderBoard();
+    renderTray();
+    if (obstaclesLeft() === 0) return win();
+    if (!pieces.some(p => p && fitsAnywhere(p.cells))) gameOver();
+  }
+
+  function starsFor() {
+    const size = Math.ceil(obstaclesTotal / 2.5);
+    return score >= size * 40 ? 3 : score >= size * 25 ? 2 : 1;
+  }
+
+  function win() {
+    over = true;
+    const stars = starsFor();
+    const before = state.stars[level] || 0;
+    // First win pays 2 + stars; replays pay 1 part plus any newly earned stars.
+    const parts = before ? 1 + Math.max(0, stars - before) : 2 + stars;
+    state.stars[level] = Math.max(before, stars);
+    state.parts += parts;
+    let animal = null;
+    if (ANIMALS[level] && !state.animals.includes(level)) { state.animals.push(level); animal = ANIMALS[level]; }
+    save();
+
+    [...$('win-stars').children].forEach((s, i) => s.classList.toggle('on', i < stars));
+    $('win-parts').textContent = `+${parts} ⚙️ Ersatzteile`;
+    $('win-animal').innerHTML = animal
+      ? `<div class="animal-card"><span class="emoji">${animal.emoji}</span><div><b>${animal.name} gerettet!</b><span>${animal.text}</span></div></div>`
+      : '';
+    setTimeout(() => {
+      sfx.win();
+      for (let i = 0; i < stars; i++) setTimeout(() => sfx.star(i), 600 + i * 250);
+      confetti();
+      showDialog('dlg-win');
+    }, 400);
+  }
+
+  function gameOver() {
+    over = true;
+    sfx.over();
+    const left = obstaclesLeft();
+    $('over-text').textContent = `Noch ${left} ${PLANETS[LEVELS[level].planet].icon} übrig.`;
+    const tries = MAX_RESCUES - rescues;
+    $('btn-revive').hidden = tries <= 0;
+    $('revive-info').textContent = `Werbung ansehen · Platz schaffen · noch ${tries}×`;
+    setTimeout(() => showDialog('dlg-over'), 400);
+  }
+
+  // Placeholder for a rewarded ad: counts down, then hands out the reward.
+  function showAd(rewardText, onReward) {
+    $('ad-reward').textContent = `Belohnung: ${rewardText}`;
+    $('btn-ad-done').hidden = true;
+    showDialog('dlg-ad');
+    let left = 3;
+    $('ad-count').textContent = left;
+    const timer = setInterval(() => {
+      $('ad-count').textContent = Math.max(--left, 0);
+      if (left > 0) return;
+      clearInterval(timer);
+      $('btn-ad-done').hidden = false;
+      $('btn-ad-done').onclick = () => { sfx.click(); closeDialog(); onReward(); };
+    }, 1000);
+  }
+
+  // Rescue: clear the middle rows (obstacles stay) and deal two lucky hands.
+  function rescue() {
+    if (rescues >= MAX_RESCUES) return;
+    showAd('Platz in der Mitte und 2 Runden die besten Steine', () => {
+      rescues++;
+      over = false;
+      for (let r = 2; r < 6; r++) grid[r] = grid[r].map(v => isObstacle(v) ? v : null);
+      luckyHands = 2;
+      dealPieces();
+      renderBoard();
+      renderTray();
+      toast('Weiter geht’s! 🍀');
+    });
+  }
+
+  function startLevel(index) {
+    level = index;
+    const lv = LEVELS[index];
+    grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+    lv.map.forEach((line, r) => [...line].forEach((ch, c) => { if (ch === '#') grid[r][c] = O1; if (ch === '@') grid[r][c] = O2; }));
+    boardEl.dataset.planet = PLANETS[lv.planet].id;
+    obstaclesTotal = obstaclesLeft();
+    score = 0; combo = 0; busy = false; over = false; rescues = 0; handsDealt = 0; luckyHands = 0;
+    justPlaced = new Set();
+    showScreen('screen-game');
+    dealPieces();
+    renderBoard();
+    renderTray();
+    renderHud();
+  }
+
+  // ---------- Wiring ----------
+  const on = (id, fn) => $(id).addEventListener('click', () => { sfx.click(); fn(); });
+  window.addEventListener('pointerdown', () => getAudio(), { once: true });
+
+  on('btn-start', () => {
+    if (state.introSeen) return showScreen('screen-ark');
+    $('intro-letter').innerHTML = letterHtml(INTRO_LETTER.title, INTRO_LETTER.text);
+    showScreen('screen-intro');
+  });
+  on('btn-intro-done', () => { state.introSeen = true; save(); showScreen('screen-ark'); });
+  on('btn-log', () => showScreen('screen-log'));
+  on('btn-log-back', () => showScreen('screen-ark'));
+  on('btn-animals', openAnimals);
+  on('btn-animals-close', closeDialog);
+  on('btn-room-close', closeDialog);
+  on('btn-letter-close', () => { closeDialog(); renderArk(); });
+
+  on('btn-pause', () => { if (!over) { $('btn-sound').textContent = state.muted ? '🔇 Ton: aus' : '🔊 Ton: an'; showDialog('dlg-pause'); } });
+  on('btn-resume', closeDialog);
+  on('btn-restart', () => startLevel(level));
+  on('btn-sound', () => { state.muted = !state.muted; save(); $('btn-sound').textContent = state.muted ? '🔇 Ton: aus' : '🔊 Ton: an'; });
+  on('btn-pause-ark', () => showScreen('screen-ark'));
+  on('btn-revive', rescue);
+  on('btn-retry', () => startLevel(level));
+  on('btn-over-ark', () => showScreen('screen-ark'));
+  on('btn-win-ark', () => showScreen('screen-ark'));
+
+  showScreen('screen-title');
+})();
+</script>
+</body>
+</html>

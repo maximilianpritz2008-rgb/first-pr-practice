@@ -21,3 +21,7 @@ The dealer picks each hand in one of four ways: pure chance; a fair hand where a
 ## Claude skills
 
 `.claude/skills/` holds game development skills Claude Code loads in this repository; see `.claude/skills/README.md` for sources and licenses.
+
+## Omas Arche (prototype)
+
+`arche/index.html` is a prototype for a second game built on the same puzzle engine. The player inherits their grandmother's old space ark, plays block puzzle levels on alien planets to clear obstacles (bushes on Moosmond, snow and ice on Frostia), earns spare parts to repair the ark's rooms, unlocks grandma's letters in a logbook, rescues animals that move into the ark, and flies on to the next planet once the engine is fixed. Art is placeholder (emoji and CSS); progress is saved in localStorage.
