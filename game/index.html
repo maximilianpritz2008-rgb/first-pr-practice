@@ -167,6 +167,19 @@
   .stars span:nth-child(3).on { animation-delay: 0.5s; }
   @keyframes star-in { from { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.4); } }
   #win-streak { color: #ffb347; font-weight: 700; }
+  #btn-luck {
+    width: auto; margin: 0; padding: 10px 18px; border-radius: 999px; font-size: 14px;
+    background: linear-gradient(135deg, #38e54d, #00c2ff); color: #062a12;
+  }
+  #btn-luck:disabled { background: var(--panel); color: var(--muted); cursor: default; }
+  #btn-luck.active { animation: glow 1.4s ease-in-out infinite; }
+  @keyframes glow { 50% { box-shadow: 0 0 22px rgba(56, 229, 77, 0.8); } }
+  .ad-box {
+    margin: 4px 0 14px; padding: 36px 12px; border-radius: 12px; font-weight: 700;
+    background: repeating-linear-gradient(45deg, #3a2a6e, #3a2a6e 12px, #33245f 12px, #33245f 24px);
+    color: var(--muted);
+  }
+  #ad-count { font-size: 40px; color: var(--text); display: block; margin-top: 6px; }
   [hidden] { display: none !important; }
   @media (prefers-reduced-motion: reduce) {
     body, #combo, .piece { animation: none; }
@@ -194,6 +207,7 @@
   <div id="combo"></div>
   <div id="board"></div>
   <div id="tray"></div>
+  <button id="btn-luck">🍀 Bessere Steine · Werbung ansehen</button>
 </div>
 <div id="drag"></div>
 <canvas id="fx"></canvas>
@@ -210,7 +224,7 @@
   <div class="dialog" id="dlg-over" hidden>
     <h2>Kein Platz mehr!</h2>
     <p id="over-text"></p>
-    <button class="primary" id="btn-revive">Zweite Chance<small>(hier käme eine Belohnungs-Werbung)</small></button>
+    <button class="primary" id="btn-revive">Zweite Chance<small>Werbung ansehen · Feld wird frei + 🍀 2 Runden Glück</small></button>
     <button class="secondary" id="btn-retry">Nochmal</button>
     <button class="secondary" id="btn-over-menu">Menü</button>
   </div>
@@ -222,6 +236,12 @@
     <button class="primary" id="btn-next">Nächstes Level</button>
     <button class="secondary" id="btn-win-retry">Nochmal für mehr Sterne</button>
     <button class="secondary" id="btn-win-menu">Menü</button>
+  </div>
+  <div class="dialog" id="dlg-ad" hidden>
+    <h2>Werbung</h2>
+    <div class="ad-box">Platzhalter für eine Belohnungs-Werbung<span id="ad-count">3</span></div>
+    <p id="ad-reward"></p>
+    <button class="primary" id="btn-ad-done" hidden>Belohnung abholen</button>
   </div>
 </div>
 
@@ -284,6 +304,7 @@
   // mode: 'endless', 'level' or 'daily'; level: index into LEVELS
   let grid, pieces, score, combo, best, revived, busy, mode, level, lines, over;
   let rand = Math.random;
+  let luckyHands = 0, handsDealt = 0, luckReadyAt = 0;
   let justPlaced = new Set();
   const cellEls = [];
 
@@ -539,12 +560,13 @@
     return SHAPES[0].cells;
   }
 
-  function canPlace(cells, row, col) {
+  function canPlaceOn(g, cells, row, col) {
     return cells.every(([r, c]) => {
       const rr = row + r, cc = col + c;
-      return rr >= 0 && rr < SIZE && cc >= 0 && cc < SIZE && !grid[rr][cc];
+      return rr >= 0 && rr < SIZE && cc >= 0 && cc < SIZE && !g[rr][cc];
     });
   }
+  const canPlace = (cells, row, col) => canPlaceOn(grid, cells, row, col);
 
   function fitsAnywhere(cells) {
     for (let r = 0; r < SIZE; r++)
@@ -553,18 +575,169 @@
     return false;
   }
 
-  // Deal three pieces, guaranteeing at least one of them fits so a fresh hand is never instantly lost.
+  // ---------- Dealer: picks the next three pieces ----------
+  // Three tiers: pure chance; a fair hand where all three pieces fit somehow;
+  // and, during a luck boost, the best of many sampled hands.
+
+  // Place a piece on a copy of the board and clear full lines. `contacts` counts neighbours
+  // that are walls or blocks, which rewards placements that keep the board compact.
+  function simulateMove(g, cells, row, col) {
+    const next = g.map(r => r.slice());
+    const own = new Set(cells.map(([r, c]) => (row + r) * SIZE + col + c));
+    let contacts = 0;
+    for (const [r, c] of cells) {
+      const rr = row + r, cc = col + c;
+      next[rr][cc] = 1;
+      for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        const nr = rr + dr, nc = cc + dc;
+        if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) contacts++;
+        else if (g[nr][nc] && !own.has(nr * SIZE + nc)) contacts++;
+      }
+    }
+    const fullRows = [], fullCols = [];
+    for (let r = 0; r < SIZE; r++) if (next[r].every(Boolean)) fullRows.push(r);
+    for (let c = 0; c < SIZE; c++) if (next.every(rowArr => rowArr[c])) fullCols.push(c);
+    fullRows.forEach(r => next[r].fill(null));
+    fullCols.forEach(c => next.forEach(rowArr => { rowArr[c] = null; }));
+    return { grid: next, lines: fullRows.length + fullCols.length, contacts };
+  }
+
+  function bestMove(g, cells) {
+    let best = null;
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        if (!canPlaceOn(g, cells, r, c)) continue;
+        const move = simulateMove(g, cells, r, c);
+        const value = move.lines * 100 + move.contacts;
+        if (!best || value > best.value) best = { ...move, value };
+      }
+    }
+    return best;
+  }
+
+  const ORDERS = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]];
+
+  // Rates a hand: -Infinity if no order lets all three pieces fit,
+  // otherwise more for cleared lines and for free space left afterwards.
+  function rateHand(hand) {
+    let best = -Infinity;
+    for (const order of ORDERS) {
+      let g = grid, lines = 0, ok = true;
+      for (const i of order) {
+        const move = bestMove(g, hand[i].cells);
+        if (!move) { ok = false; break; }
+        g = move.grid;
+        lines += move.lines;
+      }
+      if (!ok) continue;
+      const empty = g.reduce((n, rowArr) => n + rowArr.filter(x => !x).length, 0);
+      best = Math.max(best, lines * 10 + empty * 0.3);
+    }
+    return best;
+  }
+
+  // Chance that the next hand is guaranteed to fit completely.
+  function fairChance() {
+    if (handsDealt < 3) return 1;      // a friendly start
+    const filled = grid.reduce((n, rowArr) => n + rowArr.filter(Boolean).length, 0) / (SIZE * SIZE);
+    let chance = mode === 'endless' ? 0.3 : 0.45;
+    if (filled > 0.5) chance += 0.3;   // a lifeline when the board gets crowded
+    return chance;
+  }
+
+  const LUCKY_SAMPLES = 25;
+  const FAIR_TRIES = 20;
+  const randomPiece = () => ({ cells: randomShape(), color: COLORS[Math.floor(rand() * COLORS.length)] });
+  const randomHand = () => [randomPiece(), randomPiece(), randomPiece()];
+
+  function pickHand() {
+    if (luckyHands > 0) {
+      let best = null, bestRating = -Infinity;
+      for (let i = 0; i < LUCKY_SAMPLES; i++) {
+        const hand = randomHand();
+        const rating = rateHand(hand);
+        if (!best || rating > bestRating) { best = hand; bestRating = rating; }
+      }
+      return best;
+    }
+    if (rand() < fairChance()) {
+      for (let i = 0; i < FAIR_TRIES; i++) {
+        const hand = randomHand();
+        if (rateHand(hand) > -Infinity) return hand;
+      }
+    }
+    return randomHand();
+  }
+
   function dealPieces() {
-    pieces = [0, 1, 2].map(() => ({
-      cells: randomShape(),
-      color: COLORS[Math.floor(rand() * COLORS.length)],
-    }));
+    pieces = pickHand();
+    // Whatever was picked, at least one piece must fit so a fresh hand is never instantly lost.
     if (!pieces.some(p => fitsAnywhere(p.cells))) {
       for (let tries = 0; tries < 50; tries++) {
         const cells = randomShape();
         if (fitsAnywhere(cells)) { pieces[0].cells = cells; break; }
       }
     }
+    handsDealt++;
+    if (luckyHands > 0) luckyHands--;
+    renderLuck();
+  }
+
+  // ---------- Rewarded ads (placeholder) ----------
+  const LUCK_HANDS = 3;
+  const LUCK_COOLDOWN = 5;   // hands between two luck boosts
+
+  function renderLuck() {
+    const btn = $('btn-luck');
+    btn.classList.toggle('active', luckyHands > 0);
+    if (luckyHands > 0) {
+      btn.disabled = true;
+      btn.textContent = `🍀 Glück aktiv · noch ${luckyHands} ${luckyHands === 1 ? 'Runde' : 'Runden'}`;
+    } else if (handsDealt < luckReadyAt) {
+      btn.disabled = true;
+      const wait = luckReadyAt - handsDealt;
+      btn.textContent = `🍀 Wieder verfügbar in ${wait} ${wait === 1 ? 'Runde' : 'Runden'}`;
+    } else {
+      btn.disabled = false;
+      btn.textContent = '🍀 Bessere Steine · Werbung ansehen';
+    }
+  }
+
+  // Shows the ad placeholder, counts down, then hands out the reward.
+  // In a published game this would call the ad SDK's rewarded ad instead.
+  function showAd(rewardText, onReward) {
+    $('ad-reward').textContent = `Belohnung: ${rewardText}`;
+    $('btn-ad-done').hidden = true;
+    showDialog('dlg-ad');
+    let left = 3;
+    $('ad-count').textContent = left;
+    const timer = setInterval(() => {
+      left--;
+      $('ad-count').textContent = Math.max(left, 0);
+      if (left <= 0) {
+        clearInterval(timer);
+        $('btn-ad-done').hidden = false;
+        $('btn-ad-done').onclick = () => {
+          sfx.click();
+          save('klotz-ads-watched', load('klotz-ads-watched', 0) + 1);
+          overlay.classList.remove('show');
+          onReward();
+        };
+      }
+    }, 1000);
+  }
+
+  function activateLuck() {
+    if (over || busy || luckyHands > 0 || handsDealt < luckReadyAt) return;
+    showAd(`${LUCK_HANDS} Runden lang die besten Steine`, () => {
+      luckyHands = LUCK_HANDS;
+      luckReadyAt = handsDealt + LUCK_HANDS + LUCK_COOLDOWN;
+      // Swap the current hand right away so the reward is felt immediately.
+      dealPieces();
+      renderTray();
+      confetti();
+      toast('🍀 Glück aktiv!', 2000);
+    });
   }
 
   function renderBoard() {
@@ -799,7 +972,7 @@
   }
 
   function showDialog(id) {
-    for (const d of ['dlg-menu', 'dlg-over', 'dlg-win']) $(d).hidden = d !== id;
+    for (const d of ['dlg-menu', 'dlg-over', 'dlg-win', 'dlg-ad']) $(d).hidden = d !== id;
     overlay.classList.add('show');
   }
 
@@ -859,16 +1032,17 @@
     }, 400);
   }
 
-  // Second chance: wipe the middle four rows and deal a fresh hand.
-  // In a published game this is where a rewarded video ad would be shown.
+  // Second chance (after a rewarded ad): wipe the middle four rows and deal lucky hands.
   function revive() {
-    revived = true;
-    over = false;
-    overlay.classList.remove('show');
-    for (let r = 2; r < 6; r++) grid[r].fill(null);
-    dealPieces();
-    renderBoard();
-    renderTray();
+    showAd('Feld wird frei und 2 Runden lang die besten Steine', () => {
+      revived = true;
+      over = false;
+      for (let r = 2; r < 6; r++) grid[r].fill(null);
+      luckyHands = 2;
+      dealPieces();
+      renderBoard();
+      renderTray();
+    });
   }
 
   // The daily board: a handful of stones placed from today's seed, never forming a full line.
@@ -895,6 +1069,7 @@
     }
     score = 0; combo = 0; lines = 0; revived = false; busy = false; over = false;
     justPlaced = new Set();
+    luckyHands = 0; handsDealt = 0; luckReadyAt = 0;
     best = load('klotz-best', 0);
     $('goal').hidden = mode === 'endless';
     $('best-row').hidden = mode !== 'endless';
@@ -930,6 +1105,7 @@
     showDialog('dlg-menu');
   }
 
+  $('btn-luck').addEventListener('click', () => { sfx.click(); activateLuck(); });
   $('btn-daily').addEventListener('click', () => { sfx.click(); startGame('daily'); });
   $('btn-endless').addEventListener('click', () => { sfx.click(); startGame('endless'); });
   $('btn-revive').addEventListener('click', () => { sfx.click(); revive(); });
