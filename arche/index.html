@@ -140,6 +140,49 @@
   .hub-nav { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .hint { color: var(--muted); font-size: 14px; text-align: center; margin: 0; }
 
+  /* ---------- Hero choice ---------- */
+  #screen-hero { justify-content: center; text-align: center; }
+  #screen-hero h2 { font-size: 30px; }
+  .hero-choice { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hero-card {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px; border-radius: 20px;
+    background: var(--panel); box-shadow: inset 0 0 0 2px #3d3285; color: var(--text);
+  }
+  .hero-card:hover, .hero-card:focus-visible { box-shadow: inset 0 0 0 3px var(--accent); }
+  .hero-card .pick { width: auto; padding: 8px 16px; border-radius: 999px; background: var(--accent); color: #3d2600; font-weight: 800; }
+
+  /* ---------- Crew on the hub ---------- */
+  .crew { width: 100%; display: flex; align-items: flex-end; justify-content: flex-end; gap: 8px; margin-top: -10px; }
+  .crew-bubble {
+    max-width: 230px; background: var(--paper); color: var(--ink); padding: 10px 12px; border-radius: 14px 14px 4px 14px;
+    font-size: 14px; font-weight: 700; line-height: 1.35; text-align: left;
+  }
+  .crew-btn { width: auto; padding: 0; background: none; flex: none; }
+
+  /* ---------- Dialogue ---------- */
+  #talk {
+    position: fixed; inset: 0; z-index: 22; display: none; align-items: flex-end; justify-content: center;
+    padding: 16px; background: rgba(8, 5, 25, 0.45); cursor: pointer;
+  }
+  #talk.show { display: flex; }
+  .talk-inner { width: min(460px, 100%); position: relative; padding-top: 120px; }
+  .talk-portrait { position: absolute; bottom: calc(100% - 132px); left: 4px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4)); }
+  .talk-inner.right .talk-portrait { left: auto; right: 4px; }
+  .talk-box {
+    position: relative; background: var(--paper); color: var(--ink); border-radius: 18px; padding: 16px 18px 12px;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.45); min-height: 120px; animation: screen-in 0.2s ease-out;
+  }
+  .talk-name { font: 800 20px var(--font-display); color: #8a3b12; }
+  .talk-inner.right .talk-name { text-align: right; }
+  .talk-text { font-size: 17px; line-height: 1.45; margin: 4px 0 6px; min-height: 50px; }
+  .talk-next { text-align: right; font-size: 13px; font-weight: 800; color: #a07a5a; }
+
+  .letter-oma {
+    float: right; width: 76px; height: 76px; margin: -8px -6px 6px 12px; border-radius: 50%; overflow: hidden;
+    background: #ead9b8; box-shadow: inset 0 0 0 3px #c9a77a;
+  }
+  .letter-oma .portrait { margin: 0 0 0 -12px; }
+
   /* ---------- Logbook ---------- */
   .topbar { width: 100%; display: flex; align-items: center; gap: 10px; }
   .topbar h2 { flex: 1; font-size: 24px; }
@@ -328,6 +371,13 @@
   <button class="primary" id="btn-intro-done">Zur Arche</button>
 </div>
 
+<!-- Hero choice -->
+<div class="screen" id="screen-hero" hidden>
+  <h2>Wer übernimmt Omas Arche?</h2>
+  <p class="hint">Das bist du. Beide tragen Omas Anhänger, den Schlüssel zur Arche.</p>
+  <div class="hero-choice" id="hero-choice"></div>
+</div>
+
 <!-- Ark hub -->
 <div class="screen" id="screen-ark" hidden>
   <div class="hub-head">
@@ -341,6 +391,7 @@
       <div class="rooms" id="rooms"></div>
     </div>
   </div>
+  <div class="crew" id="crew" hidden></div>
   <p class="hint" id="hub-hint"></p>
   <div class="hub-actions">
     <button class="primary play-btn" id="btn-play"></button>
@@ -379,6 +430,16 @@
 <canvas id="fx"></canvas>
 <div id="warp"></div>
 <div id="toast" hidden></div>
+<div id="talk" role="dialog" aria-live="polite">
+  <div class="talk-inner" id="talk-inner">
+    <div class="talk-portrait" id="talk-portrait"></div>
+    <div class="talk-box">
+      <div class="talk-name" id="talk-name"></div>
+      <p class="talk-text" id="talk-text"></p>
+      <div class="talk-next">Tippen zum Weiterlesen ▸</div>
+    </div>
+  </div>
+</div>
 
 <div id="overlay">
   <div class="dialog" id="dlg-pause" hidden>
@@ -429,6 +490,7 @@
 </div>
 
 <script src="animals.js"></script>
+<script src="characters.js"></script>
 <script>
 (() => {
   const SIZE = 8;
@@ -499,9 +561,42 @@
   ];
   const roomById = id => ROOMS.find(r => r.id === id);
 
+  // Short scenes with Funke, the engineer. 'hero' is whichever player character was chosen.
+  const SCENES = {
+    first: [
+      { who: 'funke', mood: 'neutral', text: 'Na sieh mal einer an. Jemand bringt die alte Dame wieder zum Laufen.' },
+      { who: 'hero', mood: 'surprised', text: 'Wer bist du denn? Und wie bist du an Bord gekommen?' },
+      { who: 'funke', mood: 'happy', text: 'Funke. Bordingenieur. Ich war schon hier, als du noch nicht laufen konntest.' },
+      { who: 'hero', mood: 'neutral', text: 'Du kanntest Oma?' },
+      { who: 'funke', mood: 'neutral', text: '… Gib mir mal den Schraubenschlüssel. Wir haben zu tun.' },
+    ],
+    animals: [
+      { who: 'funke', mood: 'neutral', text: 'Die Tierstation, hm? Deine Oma hat die Kissen selbst genäht.' },
+      { who: 'hero', mood: 'happy', text: 'Sieht man.' },
+      { who: 'funke', mood: 'happy', text: 'Hab ich ihr auch gesagt. Danach hat sie eine Woche lang nicht mit mir geredet.' },
+    ],
+    engine: [
+      { who: 'funke', mood: 'happy', text: 'Hörst du das? So brummt sie nur, wenn sie fliegen will.' },
+      { who: 'hero', mood: 'happy', text: 'Dann fliegen wir!' },
+      { who: 'funke', mood: 'neutral', text: 'Erst wenn alle Tiere vom Moosmond an Bord sind. Das war immer ihre Regel.' },
+    ],
+    observatory: [
+      { who: 'hero', mood: 'surprised', text: 'Funke, schau mal. Auf der Karte hat Oma einen Planeten rot eingekreist.' },
+      { who: 'funke', mood: 'surprised', text: '…' },
+      { who: 'funke', mood: 'neutral', text: 'Darüber reden wir ein anderes Mal.' },
+    ],
+  };
+  const FUNKE_IDLE = [
+    'Die alte Dame hält mehr aus, als man denkt.',
+    'Wenn du was brauchst: Ich bin im Maschinenraum. Bin ich immer.',
+    'Nein, ich nehme den Helm nicht ab.',
+    'Deine Oma hätte jetzt Kakao gekocht.',
+    'Die Tiere mögen dich. Das ist ein gutes Zeichen.',
+  ];
+
   // ---------- Save data ----------
   const SAVE_KEY = 'omas-arche';
-  const fresh = () => ({ parts: 0, repaired: [], stars: {}, planet: 0, introSeen: false, animals: [], muted: false });
+  const fresh = () => ({ parts: 0, repaired: [], stars: {}, planet: 0, introSeen: false, animals: [], muted: false, hero: null, metFunke: false });
   function load() {
     try { return { ...fresh(), ...JSON.parse(localStorage.getItem(SAVE_KEY) || '{}') }; } catch { return fresh(); }
   }
@@ -559,7 +654,7 @@
   };
 
   // ---------- Screens & dialogs ----------
-  const SCREENS = ['screen-title', 'screen-intro', 'screen-ark', 'screen-log', 'screen-game'];
+  const SCREENS = ['screen-title', 'screen-intro', 'screen-hero', 'screen-ark', 'screen-log', 'screen-game'];
   const DIALOGS = ['dlg-pause', 'dlg-over', 'dlg-win', 'dlg-room', 'dlg-letter', 'dlg-animals', 'dlg-ad'];
   const overlay = $('overlay');
   let currentScreen = 'screen-title';
@@ -581,7 +676,7 @@
   const closeDialog = () => overlay.classList.remove('show');
 
   function letterHtml(title, paragraphs) {
-    return `<h3>${title}</h3>${paragraphs.map(p => `<p>${p}</p>`).join('')}<p class="sign">${GRANDMA}</p>`;
+    return `<div class="letter-oma">${ArcheCharacters.html('oma', 'happy', 100)}</div><h3>${title}</h3>${paragraphs.map(p => `<p>${p}</p>`).join('')}<p class="sign">${GRANDMA}</p>`;
   }
 
   let toastTimer;
@@ -590,6 +685,78 @@
     el.textContent = text; el.hidden = false;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { el.hidden = true; }, ms);
+  }
+
+  // ---------- Hero choice ----------
+  function showHeroChoice() {
+    const box = $('hero-choice');
+    box.innerHTML = '';
+    for (const id of ['heldin', 'held']) {
+      const card = document.createElement('button');
+      card.className = 'hero-card';
+      card.innerHTML = `${ArcheCharacters.html(id, 'happy', 140)}<span class="pick">Das bin ich</span>`;
+      card.setAttribute('aria-label', id === 'heldin' ? 'Als Frau spielen' : 'Als Mann spielen');
+      card.addEventListener('click', () => { sfx.click(); state.hero = id; save(); showScreen('screen-ark'); });
+      box.appendChild(card);
+    }
+    showScreen('screen-hero');
+  }
+
+  // ---------- Dialogue ----------
+  // Plays lines one by one with a typewriter effect: a tap finishes the line, the next tap moves on.
+  let talk = null;
+  function playDialog(lines, onDone) {
+    if (!lines.length) return onDone && onDone();
+    talk = { lines, i: -1, onDone, timer: null, full: '' };
+    $('talk').classList.add('show');
+    nextLine();
+  }
+  function nextLine() {
+    clearInterval(talk.timer);
+    talk.i++;
+    if (talk.i >= talk.lines.length) {
+      $('talk').classList.remove('show');
+      const done = talk.onDone;
+      talk = null;
+      return done && done();
+    }
+    const line = talk.lines[talk.i];
+    const id = line.who === 'hero' ? state.hero || 'heldin' : line.who;
+    $('talk-inner').classList.toggle('right', line.who === 'hero');
+    $('talk-portrait').innerHTML = ArcheCharacters.html(id, line.mood, 128);
+    $('talk-name').textContent = ArcheCharacters.names[id];
+    const textEl = $('talk-text');
+    talk.full = line.text;
+    if (reducedMotion()) { textEl.textContent = line.text; return; }
+    let n = 0;
+    textEl.textContent = '';
+    talk.timer = setInterval(() => {
+      n += 1;
+      textEl.textContent = talk.full.slice(0, n);
+      if (n % 3 === 0) tone(line.who === 'funke' ? vary(220) : vary(520), 0, 0.03, { type: 'square', volume: 0.015 });
+      if (n >= talk.full.length) clearInterval(talk.timer);
+    }, 28);
+  }
+  $('talk').addEventListener('click', () => {
+    if (!talk) return;
+    const textEl = $('talk-text');
+    if (textEl.textContent.length < talk.full.length) { clearInterval(talk.timer); textEl.textContent = talk.full; }
+    else nextLine();
+  });
+
+  function renderCrew() {
+    const crew = $('crew');
+    crew.hidden = !state.metFunke;
+    if (!state.metFunke) return;
+    crew.innerHTML = `<div class="crew-bubble" id="crew-bubble">Tippe auf mich, wenn dir langweilig ist.</div>
+      <button class="crew-btn" id="crew-funke" aria-label="Mit Funke reden">${ArcheCharacters.html('funke', 'neutral', 64)}</button>`;
+    $('crew-funke').addEventListener('click', () => {
+      sfx.click();
+      const line = FUNKE_IDLE[Math.floor(Math.random() * FUNKE_IDLE.length)];
+      $('crew-bubble').textContent = line;
+      $('crew-funke').innerHTML = ArcheCharacters.html('funke', 'happy', 64);
+      setTimeout(() => { const btn = $('crew-funke'); if (btn) btn.innerHTML = ArcheCharacters.html('funke', 'neutral', 64); }, 1200);
+    });
   }
 
   // ---------- Background: space with the current planet ----------
@@ -732,6 +899,7 @@
     $('planet-name').innerHTML = `${planet.name}<small>${planet.tagline}</small>`;
     $('parts').textContent = `⚙️ ${state.parts}`;
     $('flame').hidden = !isRepaired('engine');
+    renderCrew();
 
     const roomsEl = $('rooms');
     roomsEl.innerHTML = '';
@@ -819,7 +987,10 @@
     const [x, y] = centerOf(el);
     burst(x, y, '#ffcf5a', 30, 6);
     burst(x, y, '#ffffff', 15, 4, 'dot');
-    setTimeout(() => showLetter(room), 900);
+    const lines = [...(state.metFunke ? [] : SCENES.first), ...(SCENES[room.id] || [])];
+    state.metFunke = true;
+    save();
+    setTimeout(() => playDialog(lines, () => { renderCrew(); showLetter(room); }), 900);
   }
 
   function showLetter(room) {
@@ -1254,11 +1425,11 @@
   window.addEventListener('pointerdown', () => getAudio(), { once: true });
 
   on('btn-start', () => {
-    if (state.introSeen) return showScreen('screen-ark');
+    if (state.introSeen) return state.hero ? showScreen('screen-ark') : showHeroChoice();
     $('intro-letter').innerHTML = letterHtml(INTRO_LETTER.title, INTRO_LETTER.text);
     showScreen('screen-intro');
   });
-  on('btn-intro-done', () => { state.introSeen = true; save(); showScreen('screen-ark'); });
+  on('btn-intro-done', () => { state.introSeen = true; save(); showHeroChoice(); });
   on('btn-log', () => showScreen('screen-log'));
   on('btn-log-back', () => showScreen('screen-ark'));
   on('btn-animals', openAnimals);

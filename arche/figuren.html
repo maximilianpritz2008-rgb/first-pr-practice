@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Archen-Figuren</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+  /* Layout: one card per character, each showing its three moods side by side. */
+  :root {
+    --space: #120c30;
+    --space-2: #241a5c;
+    --card: #2a2160;
+    --card-line: #3d3285;
+    --text: #fff8ec;
+    --muted: #c9bfe8;
+    --accent: #ffcf5a;
+    --moos: #7bd389;
+    --frost: #7cc6f2;
+    --font-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+    --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  html { background: var(--space); }
+  body {
+    min-height: 100vh; color: var(--text); font-family: var(--font-body);
+    background: radial-gradient(circle at 50% 0%, var(--space-2), var(--space) 70%) fixed;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 48px; display: flex; flex-direction: column; gap: 28px; }
+  h1, h2 { font-family: var(--font-display); margin: 0; line-height: 1.1; text-wrap: balance; }
+  h1 { font-size: clamp(32px, 8vw, 48px); color: var(--accent); }
+  .intro { color: var(--muted); margin: 6px 0 0; max-width: 60ch; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--card); border-radius: 22px; padding: 18px 16px 20px; text-align: center;
+    box-shadow: inset 0 0 0 2px var(--card-line); display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 0;
+  }
+  .stage {
+    width: 100%; height: 190px; border-radius: 16px; position: relative;
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 10px;
+  }
+  .stage.moos { background: radial-gradient(circle at 50% 120%, rgba(123, 211, 137, 0.45), transparent 70%); }
+  .stage.frost { background: radial-gradient(circle at 50% 120%, rgba(124, 198, 242, 0.45), transparent 70%); }
+  .card h2 { font-size: 24px; }
+  .tag { font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; color: #10221a; }
+  .tag.moos { background: var(--moos); }
+  .tag.frost { background: var(--frost); color: #0d2233; }
+  .card p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+  .sizes { background: var(--card); border-radius: 22px; padding: 18px 16px; box-shadow: inset 0 0 0 2px var(--card-line); }
+  .sizes h2 { font-size: 22px; margin-bottom: 4px; }
+  .sizes p { margin: 0 0 12px; color: var(--muted); }
+  .size-row { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; padding: 8px 0; }
+  .size-row .label { width: 100%; font-size: 13px; font-weight: 800; color: var(--muted); }
+  .heart {
+    position: absolute; pointer-events: none; font-size: 22px; color: #ff6b8b;
+    animation: heart-up 0.9s ease-out forwards;
+  }
+  @keyframes heart-up { from { transform: translate(-50%, 0) scale(0.6); opacity: 1; } to { transform: translate(-50%, -80px) scale(1.2); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .heart { animation-duration: 0.01s; } }
+  .moods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+  .mood { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 800; color: var(--muted); }
+  .chars { display: flex; flex-direction: column; gap: 16px; }
+  .chars .card { align-items: stretch; text-align: left; }
+  .chars .card h2 { text-align: center; }
+  .chars .card p { text-align: center; }
+  .portrait-stage { border-radius: 16px; background: radial-gradient(circle at 50% 110%, rgba(62, 199, 182, 0.35), transparent 70%); padding: 10px 0 0; display: flex; justify-content: center; overflow: hidden; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Die Figuren der Arche</h1>
+    <p class="intro">Stil-Test B für die Menschen: dieselben dicken Umrisse und runden Formen wie bei den Tieren. Jede Figur hat drei Gesichtsausdrücke.</p>
+  </header>
+  <section class="chars" id="chars"></section>
+</main>
+<script src="characters.js"></script>
+<script>
+  const CHARACTERS = [
+    { id: 'heldin', name: 'Spielfigur (Frau)', text: 'Sommersprossen, rotbraunes Haar, eine Blume aus Omas Gewächshaus und Omas Anhänger.' },
+    { id: 'held', name: 'Spielfigur (Mann)', text: 'Zerzauste goldblonde Haare, bernsteinfarbene Augen, Pullover mit Kragen und Omas Anhänger.' },
+    { id: 'oma', name: 'Oma Hilde', text: 'Riesige runde Brille, grauer Dutt, lila Schal. Weltraum-Tierärztin im Ruhestand.' },
+    { id: 'funke', name: 'Funke', text: 'Bordingenieur in rostigem Arbeitsanzug. Nimmt den Helm nie ab. Kannte Oma von früher.' },
+  ];
+  const MOOD_NAMES = { neutral: 'normal', happy: 'fröhlich', surprised: 'überrascht' };
+  const box = document.getElementById('chars');
+  for (const c of CHARACTERS) {
+    const moods = ArcheCharacters.moods.map(m =>
+      `<div class="mood"><div class="portrait-stage">${ArcheCharacters.html(c.id, m, 150)}</div>${MOOD_NAMES[m]}</div>`).join('');
+    box.insertAdjacentHTML('beforeend', `<article class="card"><h2>${c.name}</h2><div class="moods">${moods}</div><p>${c.text}</p></article>`);
+  }
+</script>
+</body>
+</html>
