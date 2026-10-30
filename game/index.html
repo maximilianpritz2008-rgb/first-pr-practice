@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Klotz Kaskade</title>
+<style>
+  :root {
+    --bg: #1b1530;
+    --panel: #2a2148;
+    --cell: #3a2f63;
+    --cell-line: #463a75;
+    --text: #f4efff;
+    --muted: #b3a8d6;
+    --accent: #ffcc4d;
+    --ghost-ok: rgba(255, 255, 255, 0.35);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    overscroll-behavior: none; touch-action: none; user-select: none;
+  }
+  #app {
+    max-width: 480px; margin: 0 auto; padding: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    min-height: 100%;
+  }
+  header { width: 100%; display: flex; justify-content: space-between; align-items: flex-end; }
+  h1 { margin: 0; font-size: 22px; letter-spacing: 0.5px; }
+  .scores { text-align: right; }
+  .score { font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .best { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  #combo {
+    height: 22px; font-weight: 700; color: var(--accent);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  #board {
+    --size: min(calc(100vw - 32px), 420px);
+    width: var(--size); height: var(--size);
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px;
+    padding: 6px; background: var(--panel); border-radius: 14px;
+  }
+  .cell { background: var(--cell); border-radius: 5px; box-shadow: inset 0 0 0 1px var(--cell-line); }
+  .block {
+    border-radius: 5px;
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,0.25), inset 0 3px 0 rgba(255,255,255,0.3);
+  }
+  .cell.ghost { background: var(--ghost-ok); }
+  .cell.will-clear { filter: brightness(1.5); }
+  .cell.clearing { animation: pop 0.35s ease-out forwards; }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); filter: brightness(2); }
+    100% { transform: scale(0); opacity: 0; }
+  }
+  #tray {
+    width: 100%; min-height: 130px;
+    display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center;
+  }
+  .slot { width: 100%; height: 120px; display: flex; align-items: center; justify-content: center; }
+  .piece { display: grid; gap: 2px; cursor: grab; touch-action: none; }
+  .piece.unfit { opacity: 0.35; }
+  .piece.hidden { visibility: hidden; }
+  #drag { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 10; display: grid; gap: 3px; }
+  #overlay {
+    position: fixed; inset: 0; background: rgba(10, 6, 25, 0.8);
+    display: none; align-items: center; justify-content: center; z-index: 20;
+  }
+  #overlay.show { display: flex; }
+  .dialog {
+    background: var(--panel); padding: 28px 24px; border-radius: 18px; text-align: center;
+    width: min(320px, calc(100vw - 32px));
+  }
+  .dialog h2 { margin: 0 0 8px; }
+  .dialog p { color: var(--muted); margin: 6px 0 18px; }
+  button {
+    display: block; width: 100%; margin-top: 10px; padding: 14px; border: 0; border-radius: 12px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+  }
+  #btn-revive { background: var(--accent); color: #2a1d00; }
+  #btn-restart { background: #5a4b94; color: var(--text); }
+  #btn-revive small { display: block; font-weight: 500; font-size: 12px; opacity: 0.75; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Klotz Kaskade</h1>
+    <div class="scores">
+      <div class="score" id="score">0</div>
+      <div class="best">Rekord: <span id="best">0</span></div>
+    </div>
+  </header>
+  <div id="combo"></div>
+  <div id="board"></div>
+  <div id="tray"></div>
+</div>
+<div id="drag"></div>
+<div id="overlay">
+  <div class="dialog">
+    <h2>Kein Platz mehr!</h2>
+    <p>Punkte: <strong id="final-score">0</strong></p>
+    <button id="btn-revive">Zweite Chance<small>(hier käme eine Belohnungs-Werbung)</small></button>
+    <button id="btn-restart">Neues Spiel</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const SIZE = 8;
+  const COLORS = ['#ff6b8b', '#ffb347', '#ffe066', '#6bdc8b', '#4dc3ff', '#9b7bff', '#ff8adf'];
+
+  // Shapes as lists of [row, col]; weight controls how often a shape appears.
+  const SHAPES = [
+    { cells: [[0,0]], weight: 2 },
+    { cells: [[0,0],[0,1]], weight: 3 },
+    { cells: [[0,0],[1,0]], weight: 3 },
+    { cells: [[0,0],[0,1],[0,2]], weight: 3 },
+    { cells: [[0,0],[1,0],[2,0]], weight: 3 },
+    { cells: [[0,0],[0,1],[0,2],[0,3]], weight: 2 },
+    { cells: [[0,0],[1,0],[2,0],[3,0]], weight: 2 },
+    { cells: [[0,0],[0,1],[0,2],[0,3],[0,4]], weight: 1 },
+    { cells: [[0,0],[1,0],[2,0],[3,0],[4,0]], weight: 1 },
+    { cells: [[0,0],[0,1],[1,0],[1,1]], weight: 3 },
+    { cells: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]], weight: 1 },
+    { cells: [[0,0],[1,0],[1,1]], weight: 2 },
+    { cells: [[0,1],[1,0],[1,1]], weight: 2 },
+    { cells: [[0,0],[0,1],[1,0]], weight: 2 },
+    { cells: [[0,0],[0,1],[1,1]], weight: 2 },
+    { cells: [[0,0],[1,0],[2,0],[2,1]], weight: 2 },
+    { cells: [[0,1],[1,1],[2,1],[2,0]], weight: 2 },
+    { cells: [[0,0],[0,1],[0,2],[1,1]], weight: 2 },
+    { cells: [[1,0],[1,1],[1,2],[0,1]], weight: 2 },
+    { cells: [[0,0],[0,1],[1,1],[1,2]], weight: 1 },
+    { cells: [[0,1],[0,2],[1,0],[1,1]], weight: 1 },
+    { cells: [[0,0],[1,1]], weight: 1 },
+    { cells: [[0,0],[1,0],[2,0],[2,1],[2,2]], weight: 1 },
+  ];
+  const TOTAL_WEIGHT = SHAPES.reduce((s, x) => s + x.weight, 0);
+
+  const boardEl = document.getElementById('board');
+  const trayEl = document.getElementById('tray');
+  const dragEl = document.getElementById('drag');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const comboEl = document.getElementById('combo');
+  const overlay = document.getElementById('overlay');
+
+  let grid, pieces, score, combo, best, revived, busy;
+  const cellEls = [];
+
+  function loadBest() {
+    try { return Number(localStorage.getItem('klotz-best')) || 0; } catch { return 0; }
+  }
+  function saveBest() {
+    try { localStorage.setItem('klotz-best', String(best)); } catch {}
+  }
+
+  for (let i = 0; i < SIZE * SIZE; i++) {
+    const c = document.createElement('div');
+    c.className = 'cell';
+    boardEl.appendChild(c);
+    cellEls.push(c);
+  }
+
+  function randomShape() {
+    let r = Math.random() * TOTAL_WEIGHT;
+    for (const s of SHAPES) { if ((r -= s.weight) < 0) return s.cells; }
+    return SHAPES[0].cells;
+  }
+
+  function canPlace(cells, row, col) {
+    return cells.every(([r, c]) => {
+      const rr = row + r, cc = col + c;
+      return rr >= 0 && rr < SIZE && cc >= 0 && cc < SIZE && !grid[rr][cc];
+    });
+  }
+
+  function fitsAnywhere(cells) {
+    for (let r = 0; r < SIZE; r++)
+      for (let c = 0; c < SIZE; c++)
+        if (canPlace(cells, r, c)) return true;
+    return false;
+  }
+
+  // Deal three pieces, guaranteeing at least one of them fits so a fresh hand is never instantly lost.
+  function dealPieces() {
+    pieces = [0, 1, 2].map(() => ({
+      cells: randomShape(),
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    }));
+    if (!pieces.some(p => fitsAnywhere(p.cells))) {
+      for (let tries = 0; tries < 50; tries++) {
+        const cells = randomShape();
+        if (fitsAnywhere(cells)) { pieces[0].cells = cells; break; }
+      }
+    }
+  }
+
+  function renderBoard() {
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const el = cellEls[r * SIZE + c];
+        el.className = 'cell';
+        el.style.background = '';
+        if (grid[r][c]) { el.classList.add('block'); el.style.background = grid[r][c]; }
+      }
+    }
+  }
+
+  function buildPieceEl(piece, cellSize, gap) {
+    const rows = Math.max(...piece.cells.map(([r]) => r)) + 1;
+    const cols = Math.max(...piece.cells.map(([, c]) => c)) + 1;
+    const el = document.createElement('div');
+    el.className = 'piece';
+    el.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+    el.style.gridTemplateRows = `repeat(${rows}, ${cellSize}px)`;
+    el.style.gap = gap + 'px';
+    for (const [r, c] of piece.cells) {
+      const b = document.createElement('div');
+      b.className = 'block';
+      b.style.background = piece.color;
+      b.style.gridRow = r + 1;
+      b.style.gridColumn = c + 1;
+      el.appendChild(b);
+    }
+    return el;
+  }
+
+  function renderTray() {
+    trayEl.innerHTML = '';
+    pieces.forEach((p, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      if (p) {
+        const el = buildPieceEl(p, 20, 2);
+        if (!fitsAnywhere(p.cells)) el.classList.add('unfit');
+        el.addEventListener('pointerdown', e => startDrag(e, i, el));
+        slot.appendChild(el);
+      }
+      trayEl.appendChild(slot);
+    });
+  }
+
+  function updateScore() {
+    scoreEl.textContent = score;
+    if (score > best) { best = score; saveBest(); }
+    bestEl.textContent = best;
+  }
+
+  // ---------- Drag & drop ----------
+  let drag = null;
+
+  function boardMetrics() {
+    const rect = boardEl.getBoundingClientRect();
+    const pad = 6, gap = 3;
+    const cell = (rect.width - pad * 2 - gap * (SIZE - 1)) / SIZE;
+    return { rect, pad, gap, cell };
+  }
+
+  function startDrag(e, index, sourceEl) {
+    if (busy) return;
+    e.preventDefault();
+    const m = boardMetrics();
+    const piece = pieces[index];
+    const el = buildPieceEl(piece, m.cell, m.gap);
+    dragEl.innerHTML = '';
+    dragEl.appendChild(el);
+    const w = el.offsetWidth, h = el.offsetHeight;
+    // Lift the piece above the finger so it stays visible on touch screens.
+    const lift = e.pointerType === 'touch' ? h + 40 : h / 2;
+    drag = { index, piece, sourceEl, w, h, lift, target: null };
+    sourceEl.classList.add('hidden');
+    moveDrag(e);
+    window.addEventListener('pointermove', moveDrag);
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+  }
+
+  function moveDrag(e) {
+    if (!drag) return;
+    const x = e.clientX - drag.w / 2;
+    const y = e.clientY - drag.lift;
+    dragEl.style.transform = `translate(${x}px, ${y}px)`;
+
+    const m = boardMetrics();
+    const step = m.cell + m.gap;
+    const col = Math.round((x - m.rect.left - m.pad) / step);
+    const row = Math.round((y - m.rect.top - m.pad) / step);
+    drag.target = canPlace(drag.piece.cells, row, col) ? { row, col } : null;
+    showGhost();
+  }
+
+  function showGhost() {
+    renderBoard();
+    if (!drag || !drag.target) return;
+    const { row, col } = drag.target;
+    for (const [r, c] of drag.piece.cells) cellEls[(row + r) * SIZE + col + c].classList.add('ghost');
+    // Highlight rows/columns that this placement would complete.
+    const filled = new Set(drag.piece.cells.map(([r, c]) => (row + r) * SIZE + col + c));
+    const isFull = (r, c) => grid[r][c] || filled.has(r * SIZE + c);
+    for (let r = 0; r < SIZE; r++) {
+      if ([...Array(SIZE).keys()].every(c => isFull(r, c)))
+        for (let c = 0; c < SIZE; c++) cellEls[r * SIZE + c].classList.add('will-clear');
+    }
+    for (let c = 0; c < SIZE; c++) {
+      if ([...Array(SIZE).keys()].every(r => isFull(r, c)))
+        for (let r = 0; r < SIZE; r++) cellEls[r * SIZE + c].classList.add('will-clear');
+    }
+  }
+
+  function endDrag() {
+    window.removeEventListener('pointermove', moveDrag);
+    window.removeEventListener('pointerup', endDrag);
+    window.removeEventListener('pointercancel', endDrag);
+    dragEl.innerHTML = '';
+    if (!drag) return;
+    const { index, piece, sourceEl, target } = drag;
+    drag = null;
+    if (target) {
+      place(index, piece, target.row, target.col);
+    } else {
+      sourceEl.classList.remove('hidden');
+      renderBoard();
+    }
+  }
+
+  // ---------- Game logic ----------
+  function place(index, piece, row, col) {
+    for (const [r, c] of piece.cells) grid[row + r][col + c] = piece.color;
+    pieces[index] = null;
+    score += piece.cells.length;
+
+    const fullRows = [], fullCols = [];
+    for (let r = 0; r < SIZE; r++) if (grid[r].every(Boolean)) fullRows.push(r);
+    for (let c = 0; c < SIZE; c++) if (grid.every(rowArr => rowArr[c])) fullCols.push(c);
+    const lines = fullRows.length + fullCols.length;
+
+    renderBoard();
+
+    if (lines > 0) {
+      combo++;
+      // More lines at once and longer streaks are worth disproportionately more.
+      const gained = lines * 10 * lines * combo;
+      score += gained;
+      flashCombo(lines, combo, gained);
+
+      const toClear = new Set();
+      fullRows.forEach(r => { for (let c = 0; c < SIZE; c++) toClear.add(r * SIZE + c); });
+      fullCols.forEach(c => { for (let r = 0; r < SIZE; r++) toClear.add(r * SIZE + c); });
+      toClear.forEach(i => cellEls[i].classList.add('clearing'));
+      busy = true;
+      setTimeout(() => {
+        toClear.forEach(i => { grid[Math.floor(i / SIZE)][i % SIZE] = null; });
+        busy = false;
+        afterMove();
+      }, 350);
+    } else {
+      combo = 0;
+      afterMove();
+    }
+    updateScore();
+  }
+
+  function afterMove() {
+    if (pieces.every(p => !p)) dealPieces();
+    renderBoard();
+    renderTray();
+    if (!pieces.some(p => p && fitsAnywhere(p.cells))) gameOver();
+  }
+
+  let comboTimer;
+  function flashCombo(lines, streak, gained) {
+    const parts = [];
+    if (lines > 1) parts.push(`${lines} Linien!`);
+    if (streak > 1) parts.push(`Combo x${streak}`);
+    parts.push(`+${gained}`);
+    comboEl.textContent = parts.join('  ·  ');
+    comboEl.style.opacity = 1;
+    clearTimeout(comboTimer);
+    comboTimer = setTimeout(() => { comboEl.style.opacity = 0; }, 1200);
+  }
+
+  function gameOver() {
+    document.getElementById('final-score').textContent = score;
+    document.getElementById('btn-revive').style.display = revived ? 'none' : 'block';
+    setTimeout(() => overlay.classList.add('show'), 400);
+  }
+
+  // Second chance: wipe the middle four rows and deal a fresh hand.
+  // In a published game this is where a rewarded video ad would be shown.
+  function revive() {
+    revived = true;
+    overlay.classList.remove('show');
+    for (let r = 2; r < 6; r++) grid[r].fill(null);
+    dealPieces();
+    renderBoard();
+    renderTray();
+  }
+
+  function newGame() {
+    grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+    score = 0; combo = 0; revived = false; busy = false;
+    best = loadBest();
+    overlay.classList.remove('show');
+    dealPieces();
+    renderBoard();
+    renderTray();
+    updateScore();
+  }
+
+  document.getElementById('btn-revive').addEventListener('click', revive);
+  document.getElementById('btn-restart').addEventListener('click', newGame);
+  newGame();
+})();
+</script>
+</body>
+</html>
