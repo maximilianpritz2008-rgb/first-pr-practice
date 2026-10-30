@@ -922,10 +922,15 @@
       roomsEl.appendChild(el);
     }
 
-    // The main button: next level, fly on, or the end of the prototype
+    // The main button: next level, fly on, repair the engine, replay for parts, or the end of the prototype
     const btn = $('btn-play');
     const next = nextLevel();
     const last = state.planet === PLANETS.length - 1;
+    const repairable = ROOMS.filter(r => !isRepaired(r.id) && r.planet <= state.planet);
+    const affordable = repairable.filter(r => r.cost <= state.parts);
+    // With every level won, the room still missing parts: the engine first, then the cheapest one.
+    const engine = roomById('engine');
+    const goal = !last && !isRepaired('engine') ? engine : [...repairable].sort((a, b) => a.cost - b.cost)[0];
     btn.disabled = false;
     btn.classList.add('pulse');
     btn.className = 'primary play-btn pulse';
@@ -936,16 +941,19 @@
       btn.className = 'go play-btn pulse';
       btn.innerHTML = `🚀 Nach ${PLANETS[state.planet + 1].name} fliegen`;
       btn.onclick = flyOn;
-    } else if (!last) {
-      btn.innerHTML = `Repariere den Antrieb 🔥<small>Dann kann die Arche weiterfliegen</small>`;
-      btn.disabled = true;
+    } else if (!last && state.parts >= engine.cost) {
+      btn.innerHTML = `🔥 Antrieb reparieren · ⚙️ ${engine.cost}<small>Dann kann die Arche weiterfliegen</small>`;
+      btn.onclick = () => { sfx.click(); openRoom(engine); };
+    } else if (goal && state.parts < goal.cost) {
+      // Out of new levels but short of parts: replay the level with the fewest stars (replays pay at least 1 part).
+      const replay = planetLevels(state.planet).reduce((a, b) => (state.stars[b] < state.stars[a] ? b : a));
+      btn.innerHTML = `▶ Level ${LEVELS[replay].number} nochmal spielen<small>Noch ${goal.cost - state.parts} ⚙️ für: ${goal.name}</small>`;
+      btn.onclick = () => { sfx.click(); startLevel(replay); };
     } else {
       btn.innerHTML = `✨ Alle Tiere gerettet<small>Mehr Planeten kommen bald</small>`;
       btn.disabled = true;
     }
 
-    const repairable = ROOMS.filter(r => !isRepaired(r.id) && r.planet <= state.planet);
-    const affordable = repairable.filter(r => r.cost <= state.parts);
     $('hub-hint').textContent = affordable.length
       ? `Du hast genug Ersatzteile für: ${affordable.map(r => r.name).join(', ')}. Tippe auf den Raum.`
       : repairable.length ? 'Spiele Level, um Ersatzteile ⚙️ für die kaputten Räume zu sammeln.' : '';
