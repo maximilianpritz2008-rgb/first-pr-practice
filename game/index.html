@@ -6,16 +6,18 @@
 <title>Klotz Kaskade</title>
 <style>
   :root {
-    --bg: #1b1530;
-    --panel: #2a2148;
-    --cell: #3a2f63;
-    --cell-line: #463a75;
-    --text: #f4efff;
-    --muted: #b3a8d6;
-    --accent: #ffcc4d;
-    --stone: #6d6491;
-    --button: #5a4b94;
-    --ghost-ok: rgba(255, 255, 255, 0.35);
+    --bg: #1b1235;
+    --bg-2: #2d0f4a;
+    --bg-3: #0f2a55;
+    --panel: rgba(42, 28, 82, 0.85);
+    --cell: #34265f;
+    --cell-line: #46377a;
+    --text: #fbf7ff;
+    --muted: #c4b6ec;
+    --accent: #ffd60a;
+    --stone: #7a6fa3;
+    --button: #5b47a8;
+    --ghost-ok: rgba(255, 255, 255, 0.4);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -24,67 +26,124 @@
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     overscroll-behavior: none; touch-action: none; user-select: none;
   }
+  body {
+    background: linear-gradient(135deg, var(--bg), var(--bg-2), var(--bg-3), var(--bg));
+    background-size: 400% 400%;
+    animation: bgshift 24s ease infinite;
+  }
+  @keyframes bgshift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
   #app {
     max-width: 480px; margin: 0 auto; padding: 16px;
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
     min-height: 100%;
   }
   header { width: 100%; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
-  .title-row { display: flex; align-items: center; gap: 8px; }
-  h1 { margin: 0; font-size: 22px; letter-spacing: 0.5px; }
-  .icon-btn {
-    width: 36px; height: 36px; margin: 0; padding: 0; border-radius: 10px;
-    background: var(--panel); color: var(--text); font-size: 17px;
+  .title-row { display: flex; align-items: center; gap: 6px; }
+  h1 {
+    margin: 0 0 0 4px; font-size: 20px; letter-spacing: 0.5px;
+    background: linear-gradient(90deg, #ff4d6d, #ffd60a, #38e54d, #00c2ff, #c86bff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
   }
+  .icon-btn {
+    width: 34px; height: 34px; margin: 0; padding: 0; border-radius: 10px;
+    background: var(--panel); color: var(--text); font-size: 16px;
+  }
+  .icon-btn.off { opacity: 0.45; }
   #status { font-size: 13px; color: var(--muted); margin-top: 6px; }
   .scores { text-align: right; }
-  .score { font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .score { font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1; text-shadow: 0 0 18px rgba(255, 214, 10, 0.5); }
+  .score.bump { animation: bump 0.3s ease-out; }
+  @keyframes bump { 50% { transform: scale(1.25); } }
   .best { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  #goal { width: 100%; height: 8px; background: var(--panel); border-radius: 4px; overflow: hidden; }
-  #goal-fill { height: 100%; width: 0; background: var(--accent); transition: width 0.3s; }
-  #combo {
-    height: 22px; font-weight: 700; color: var(--accent);
-    opacity: 0; transition: opacity 0.2s;
+  #goal { width: 100%; height: 10px; background: var(--panel); border-radius: 5px; overflow: hidden; }
+  #goal-fill {
+    height: 100%; width: 0; transition: width 0.3s;
+    background: linear-gradient(90deg, #ff4d6d, #ffd60a, #38e54d, #00c2ff);
   }
+  #combo {
+    height: 28px; font-size: 20px; font-weight: 900; opacity: 0;
+    background: linear-gradient(90deg, #ff4d6d, #ffd60a, #38e54d, #00c2ff, #c86bff, #ff4d6d);
+    background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: rainbow 1.2s linear infinite;
+  }
+  #combo.pop { animation: rainbow 1.2s linear infinite, combo-pop 0.4s ease-out; }
+  @keyframes rainbow { to { background-position: 200% 0; } }
+  @keyframes combo-pop { 0% { transform: scale(0.5); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
   #board {
     --size: min(calc(100vw - 32px), 420px);
     width: var(--size); height: var(--size);
     display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px;
     padding: 6px; background: var(--panel); border-radius: 14px;
+    box-shadow: 0 0 40px rgba(140, 90, 255, 0.35);
+  }
+  #board.shake { animation: shake 0.35s ease-out; }
+  @keyframes shake {
+    20% { transform: translate(-6px, 3px) rotate(-0.6deg); }
+    40% { transform: translate(5px, -4px) rotate(0.5deg); }
+    60% { transform: translate(-4px, 2px); }
+    80% { transform: translate(2px, -1px); }
   }
   .cell { background: var(--cell); border-radius: 5px; box-shadow: inset 0 0 0 1px var(--cell-line); }
   .block {
     border-radius: 5px;
-    box-shadow: inset 0 -4px 0 rgba(0,0,0,0.25), inset 0 3px 0 rgba(255,255,255,0.3);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0) 55%);
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.45), 0 0 10px rgba(255,255,255,0.12);
   }
+  .cell.placed { animation: land 0.3s ease-out; }
+  @keyframes land { 0% { transform: scale(1.25); filter: brightness(1.8); } 100% { transform: scale(1); } }
   .cell.ghost { background: var(--ghost-ok); }
-  .cell.will-clear { filter: brightness(1.5); }
+  .cell.will-clear { filter: brightness(1.6) saturate(1.3); }
   .cell.clearing { animation: pop 0.35s ease-out forwards; }
   @keyframes pop {
     0% { transform: scale(1); }
-    50% { transform: scale(1.15); filter: brightness(2); }
-    100% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); filter: brightness(2.2); }
+    100% { transform: scale(0) rotate(30deg); opacity: 0; }
   }
   #tray {
     width: 100%; min-height: 130px;
     display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center;
   }
   .slot { width: 100%; height: 120px; display: flex; align-items: center; justify-content: center; }
-  .piece { display: grid; gap: 2px; cursor: grab; touch-action: none; }
+  .piece { display: grid; gap: 2px; cursor: grab; touch-action: none; animation: deal 0.35s ease-out backwards; }
+  .slot:nth-child(2) .piece { animation-delay: 0.06s; }
+  .slot:nth-child(3) .piece { animation-delay: 0.12s; }
+  @keyframes deal { from { transform: translateY(30px) scale(0.6); opacity: 0; } }
   .piece.unfit { opacity: 0.35; }
   .piece.hidden { visibility: hidden; }
-  #drag { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 10; display: grid; gap: 3px; }
+  #drag { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 10; display: grid; gap: 3px; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.4)); }
+  #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+  .floater {
+    position: fixed; z-index: 31; pointer-events: none; font-weight: 900; font-size: 24px;
+    color: var(--accent); text-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 0 12px rgba(255, 214, 10, 0.6);
+    transform: translate(-50%, -50%); animation: float-up 0.9s ease-out forwards;
+  }
+  @keyframes float-up {
+    0% { opacity: 0; transform: translate(-50%, -30%) scale(0.6); }
+    20% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%, -160%) scale(1); }
+  }
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 40;
+    background: var(--panel); color: var(--text); padding: 12px 18px; border-radius: 12px;
+    width: max-content; max-width: calc(100vw - 32px); text-align: center; font-size: 14px;
+  }
   #overlay {
-    position: fixed; inset: 0; background: rgba(10, 6, 25, 0.85);
+    position: fixed; inset: 0; background: rgba(10, 6, 25, 0.8);
     display: none; align-items: center; justify-content: center; z-index: 20;
   }
   #overlay.show { display: flex; }
   .dialog {
-    background: var(--panel); padding: 28px 24px; border-radius: 18px; text-align: center;
-    width: min(340px, calc(100vw - 32px));
+    background: #2a1c52; padding: 26px 22px; border-radius: 18px; text-align: center;
+    width: min(340px, calc(100vw - 32px)); max-height: calc(100% - 32px); overflow-y: auto;
+    box-shadow: 0 0 50px rgba(140, 90, 255, 0.4);
   }
   .dialog h2 { margin: 0 0 8px; }
-  .dialog p { color: var(--muted); margin: 6px 0 18px; }
+  .dialog p { color: var(--muted); margin: 6px 0 16px; }
+  .section-label { margin: 18px 0 0; color: var(--muted); }
   button {
     display: block; width: 100%; margin-top: 10px; padding: 14px; border: 0; border-radius: 12px;
     font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
@@ -92,12 +151,26 @@
   button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .primary { background: var(--accent); color: #2a1d00; }
   .secondary { background: var(--button); color: var(--text); }
-  .primary small { display: block; font-weight: 500; font-size: 12px; opacity: 0.75; }
+  .daily {
+    background: linear-gradient(135deg, #ff4d6d, #ff9f1c); color: #fff;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.25);
+  }
+  button small { display: block; font-weight: 500; font-size: 12px; opacity: 0.85; margin-top: 2px; }
   .level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; }
-  .level-grid button { margin: 0; padding: 12px 0; }
+  .level-grid button { margin: 0; padding: 8px 0 6px; line-height: 1.1; }
+  .level-grid button small { font-size: 10px; letter-spacing: -1px; color: var(--accent); opacity: 1; }
   .level-grid button:disabled { opacity: 0.35; cursor: default; }
-  .level-grid button.done { background: var(--accent); color: #2a1d00; }
+  .stars { font-size: 40px; letter-spacing: 6px; margin: 4px 0 6px; }
+  .stars span { display: inline-block; color: #4b3f78; }
+  .stars span.on { color: var(--accent); text-shadow: 0 0 16px rgba(255, 214, 10, 0.8); animation: star-in 0.5s ease-out backwards; }
+  .stars span:nth-child(2).on { animation-delay: 0.25s; }
+  .stars span:nth-child(3).on { animation-delay: 0.5s; }
+  @keyframes star-in { from { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.4); } }
+  #win-streak { color: #ffb347; font-weight: 700; }
   [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    body, #combo, .piece { animation: none; }
+  }
 </style>
 </head>
 <body>
@@ -106,7 +179,8 @@
     <div>
       <div class="title-row">
         <button class="icon-btn" id="btn-menu" aria-label="Menü">☰</button>
-        <button class="icon-btn" id="btn-sound" aria-label="Ton an/aus">🔊</button>
+        <button class="icon-btn" id="btn-sound" aria-label="Soundeffekte an/aus">🔊</button>
+        <button class="icon-btn" id="btn-music" aria-label="Musik an/aus">🎵</button>
         <h1>Klotz Kaskade</h1>
       </div>
       <div id="status"></div>
@@ -122,12 +196,15 @@
   <div id="tray"></div>
 </div>
 <div id="drag"></div>
+<canvas id="fx"></canvas>
+<div id="toast" hidden></div>
 <div id="overlay">
   <div class="dialog" id="dlg-menu">
     <h2>Klotz Kaskade</h2>
     <p>Zieh die Formen aufs Feld. Volle Reihen und Spalten verschwinden.</p>
+    <button class="daily" id="btn-daily">Tages-Challenge<small id="daily-info"></small></button>
     <button class="primary" id="btn-endless">Endlos spielen</button>
-    <p style="margin: 18px 0 0">Level</p>
+    <p class="section-label">Level</p>
     <div class="level-grid" id="level-grid"></div>
   </div>
   <div class="dialog" id="dlg-over" hidden>
@@ -139,8 +216,11 @@
   </div>
   <div class="dialog" id="dlg-win" hidden>
     <h2 id="win-title">Level geschafft!</h2>
+    <div class="stars" id="win-stars"><span>★</span><span>★</span><span>★</span></div>
     <p id="win-text"></p>
+    <p id="win-streak" hidden></p>
     <button class="primary" id="btn-next">Nächstes Level</button>
+    <button class="secondary" id="btn-win-retry">Nochmal für mehr Sterne</button>
     <button class="secondary" id="btn-win-menu">Menü</button>
   </div>
 </div>
@@ -148,8 +228,11 @@
 <script>
 (() => {
   const SIZE = 8;
-  const COLORS = ['#ff6b8b', '#ffb347', '#ffe066', '#6bdc8b', '#4dc3ff', '#9b7bff', '#ff8adf'];
+  const COLORS = ['#ff4d6d', '#ff9f1c', '#ffd60a', '#38e54d', '#00c2ff', '#8f5bff', '#ff4fd8'];
   const STONE = getComputedStyle(document.documentElement).getPropertyValue('--stone').trim();
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DAILY_LINES = 10;
+  const BREAK_AFTER_MS = 20 * 60 * 1000;
 
   // Shapes as lists of [row, col]; weight controls how often a shape appears.
   const SHAPES = [
@@ -198,8 +281,10 @@
   const scoreEl = $('score'), bestEl = $('best'), comboEl = $('combo'), statusEl = $('status');
   const overlay = $('overlay');
 
-  // mode: 'endless' or 'level'; level: index into LEVELS
+  // mode: 'endless', 'level' or 'daily'; level: index into LEVELS
   let grid, pieces, score, combo, best, revived, busy, mode, level, lines, over;
+  let rand = Math.random;
+  let justPlaced = new Set();
   const cellEls = [];
 
   function load(key, fallback) {
@@ -209,25 +294,54 @@
     try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
   }
 
+  // ---------- Dates & seeded randomness for the daily challenge ----------
+  function dateKey(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+  const todayKey = () => dateKey(new Date());
+  const yesterdayKey = () => { const d = new Date(); d.setDate(d.getDate() - 1); return dateKey(d); };
+
+  function hashString(s) {
+    let h = 2166136261;
+    for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  // mulberry32: small seeded PRNG so every player gets the same daily board and pieces.
+  function seededRandom(seed) {
+    return () => {
+      seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function dailyState() {
+    const d = load('klotz-daily', { last: null, streak: 0, stars: {} });
+    // A streak only counts while the last completed day is today or yesterday.
+    const alive = d.last === todayKey() || d.last === yesterdayKey();
+    return { ...d, streak: alive ? d.streak : 0 };
+  }
+
   // ---------- Sound (synthesised with Web Audio, no files needed) ----------
   let audio = null;
   let muted = load('klotz-muted', false);
+  let musicOn = load('klotz-music', true);
 
-  function ensureAudio() {
-    if (muted) return null;
+  function getAudio() {
     if (!audio) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if (!Ctx) return null;
       audio = new Ctx();
     }
-    if (audio.state === 'suspended') audio.resume();
+    if (audio.state === 'suspended' && !document.hidden) audio.resume();
     return audio;
   }
 
-  function tone(freq, start, duration, { type = 'sine', volume = 0.15, slideTo = null } = {}) {
-    const ctx = ensureAudio();
+  function tone(freq, start, duration, { type = 'sine', volume = 0.15, slideTo = null, at = null } = {}) {
+    const ctx = getAudio();
     if (!ctx) return;
-    const t = ctx.currentTime + start;
+    const t = at ?? ctx.currentTime + start;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type;
@@ -244,33 +358,172 @@
   // Small random pitch variation keeps repeated sounds from getting tiring.
   const vary = f => f * (0.95 + Math.random() * 0.1);
   const PENTATONIC = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98];
+  const sfxTone = (...args) => { if (!muted) tone(...args); };
 
   const sfx = {
-    pick: () => tone(vary(660), 0, 0.05, { type: 'triangle', volume: 0.08 }),
-    place: () => tone(vary(180), 0, 0.12, { type: 'triangle', volume: 0.25, slideTo: 90 }),
-    invalid: () => tone(140, 0, 0.15, { type: 'square', volume: 0.05, slideTo: 100 }),
+    pick: () => sfxTone(vary(660), 0, 0.05, { type: 'triangle', volume: 0.08 }),
+    place: () => sfxTone(vary(180), 0, 0.12, { type: 'triangle', volume: 0.25, slideTo: 90 }),
+    invalid: () => sfxTone(140, 0, 0.15, { type: 'square', volume: 0.05, slideTo: 100 }),
     clear(lineCount, streak) {
       // Longer streaks start the arpeggio higher, more lines add more notes.
       const startNote = Math.min(streak - 1, 3);
       const notes = 2 + lineCount;
       for (let i = 0; i < notes; i++) {
         const f = PENTATONIC[Math.min(startNote + i, PENTATONIC.length - 1)];
-        tone(f, i * 0.07, 0.25, { type: 'triangle', volume: 0.12 });
+        sfxTone(f, i * 0.07, 0.25, { type: 'triangle', volume: 0.12 });
       }
     },
     gameOver() {
-      [392, 330, 262, 196].forEach((f, i) => tone(f, i * 0.16, 0.3, { type: 'sawtooth', volume: 0.06 }));
+      [392, 330, 262, 196].forEach((f, i) => sfxTone(f, i * 0.16, 0.3, { type: 'sawtooth', volume: 0.06 }));
     },
     win() {
-      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.12, 0.3, { type: 'triangle', volume: 0.14 }));
-      tone(1046.5, 0.5, 0.6, { type: 'sine', volume: 0.12 });
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => sfxTone(f, i * 0.12, 0.3, { type: 'triangle', volume: 0.14 }));
+      sfxTone(1046.5, 0.5, 0.6, { type: 'sine', volume: 0.12 });
     },
-    click: () => tone(880, 0, 0.04, { type: 'triangle', volume: 0.06 }),
+    star: i => sfxTone(1046.5 * Math.pow(1.26, i), 0, 0.3, { type: 'triangle', volume: 0.12 }),
+    click: () => sfxTone(880, 0, 0.04, { type: 'triangle', volume: 0.06 }),
   };
 
-  function renderSoundButton() {
-    $('btn-sound').textContent = muted ? '🔇' : '🔊';
+  // Background music: a gentle looping pentatonic tune, scheduled slightly ahead of time.
+  const MUSIC_STEP = 60 / 104 / 2;
+  const MELODY = [0, 2, 4, 2, 5, 4, 2, -1, 1, 3, 4, 3, 2, 0, 1, -1, 0, 2, 4, 5, 7, 5, 4, -1, 3, 2, 1, 2, 0, -1, -1, -1];
+  const BASS = [130.81, 130.81, 174.61, 174.61, 196, 196, 130.81, 130.81];
+  let musicStep = 0, musicTime = 0, musicTimer = null;
+
+  function scheduleMusic() {
+    const ctx = getAudio();
+    if (!ctx || ctx.state !== 'running') return;
+    if (musicTime < ctx.currentTime) musicTime = ctx.currentTime + 0.05;
+    while (musicTime < ctx.currentTime + 0.25) {
+      const note = MELODY[musicStep % MELODY.length];
+      if (note >= 0) tone(PENTATONIC[note] / 2, 0, MUSIC_STEP * 1.6, { type: 'triangle', volume: 0.035, at: musicTime });
+      if (musicStep % 4 === 0) tone(BASS[(musicStep / 4) % BASS.length], 0, MUSIC_STEP * 3.5, { type: 'sine', volume: 0.06, at: musicTime });
+      musicStep++;
+      musicTime += MUSIC_STEP;
+    }
   }
+  function updateMusic() {
+    if (musicOn && !musicTimer) musicTimer = setInterval(scheduleMusic, 60);
+    if (!musicOn && musicTimer) { clearInterval(musicTimer); musicTimer = null; }
+  }
+
+  function renderAudioButtons() {
+    $('btn-sound').textContent = muted ? '🔇' : '🔊';
+    $('btn-music').classList.toggle('off', !musicOn);
+  }
+
+  // Browsers only allow audio after the first tap, so start it then.
+  window.addEventListener('pointerdown', () => { getAudio(); updateMusic(); }, { once: true });
+  document.addEventListener('visibilitychange', () => {
+    if (!audio) return;
+    if (document.hidden) audio.suspend(); else audio.resume();
+  });
+
+  // ---------- Visual effects: particles, confetti, floating text ----------
+  const fx = $('fx');
+  const fxCtx = fx.getContext('2d');
+  let particles = [];
+  let fxRunning = false;
+
+  function resizeFx() {
+    const dpr = window.devicePixelRatio || 1;
+    fx.width = innerWidth * dpr;
+    fx.height = innerHeight * dpr;
+    fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resizeFx);
+  resizeFx();
+
+  function burst(x, y, color, count, speed = 5) {
+    if (reducedMotion) count = Math.ceil(count / 4);
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const v = (0.4 + Math.random()) * speed;
+      particles.push({
+        x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2, g: 0.18,
+        size: 3 + Math.random() * 5, color, life: 1, decay: 0.018 + Math.random() * 0.02,
+        rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, square: Math.random() < 0.6,
+      });
+    }
+    startFx();
+  }
+
+  function confetti() {
+    const count = reducedMotion ? 40 : 160;
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.5,
+        vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 3, g: 0.05,
+        size: 6 + Math.random() * 6, color: COLORS[i % COLORS.length], life: 1, decay: 0.004,
+        rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, square: true,
+      });
+    }
+    startFx();
+  }
+
+  function startFx() {
+    if (particles.length > 600) particles = particles.slice(-600);
+    if (!fxRunning) { fxRunning = true; requestAnimationFrame(stepFx); }
+  }
+
+  function stepFx() {
+    fxCtx.clearRect(0, 0, innerWidth, innerHeight);
+    particles = particles.filter(p => p.life > 0 && p.y < innerHeight + 40);
+    for (const p of particles) {
+      p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= p.decay;
+      fxCtx.save();
+      fxCtx.globalAlpha = Math.max(0, p.life);
+      fxCtx.fillStyle = p.color;
+      fxCtx.translate(p.x, p.y);
+      fxCtx.rotate(p.rot);
+      if (p.square) fxCtx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      else { fxCtx.beginPath(); fxCtx.arc(0, 0, p.size / 2, 0, Math.PI * 2); fxCtx.fill(); }
+      fxCtx.restore();
+    }
+    if (particles.length) requestAnimationFrame(stepFx);
+    else { fxRunning = false; fxCtx.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+
+  function floatText(text, x, y, size = 24) {
+    const el = document.createElement('div');
+    el.className = 'floater';
+    el.textContent = text;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.fontSize = size + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+
+  function cellCenter(index) {
+    const r = cellEls[index].getBoundingClientRect();
+    return [r.left + r.width / 2, r.top + r.height / 2];
+  }
+
+  function shakeBoard() {
+    if (reducedMotion) return;
+    boardEl.classList.remove('shake');
+    void boardEl.offsetWidth;
+    boardEl.classList.add('shake');
+  }
+
+  let toastTimer;
+  function toast(text, ms = 5000) {
+    const el = $('toast');
+    el.textContent = text;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, ms);
+  }
+
+  // Friendly break reminder after a long session.
+  let sessionStart = Date.now();
+  setInterval(() => {
+    if (Date.now() - sessionStart >= BREAK_AFTER_MS) {
+      sessionStart = Date.now();
+      toast('Du spielst schon 20 Minuten. Zeit für eine kleine Pause? 🙂', 8000);
+    }
+  }, 30000);
 
   // ---------- Board setup ----------
   for (let i = 0; i < SIZE * SIZE; i++) {
@@ -281,7 +534,7 @@
   }
 
   function randomShape() {
-    let r = Math.random() * TOTAL_WEIGHT;
+    let r = rand() * TOTAL_WEIGHT;
     for (const s of SHAPES) { if ((r -= s.weight) < 0) return s.cells; }
     return SHAPES[0].cells;
   }
@@ -304,7 +557,7 @@
   function dealPieces() {
     pieces = [0, 1, 2].map(() => ({
       cells: randomShape(),
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      color: COLORS[Math.floor(rand() * COLORS.length)],
     }));
     if (!pieces.some(p => fitsAnywhere(p.cells))) {
       for (let tries = 0; tries < 50; tries++) {
@@ -317,10 +570,15 @@
   function renderBoard() {
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
-        const el = cellEls[r * SIZE + c];
+        const i = r * SIZE + c;
+        const el = cellEls[i];
         el.className = 'cell';
-        el.style.background = '';
-        if (grid[r][c]) { el.classList.add('block'); el.style.background = grid[r][c]; }
+        el.style.backgroundColor = '';
+        if (grid[r][c]) {
+          el.classList.add('block');
+          el.style.backgroundColor = grid[r][c];
+          if (justPlaced.has(i)) el.classList.add('placed');
+        }
       }
     }
   }
@@ -336,7 +594,7 @@
     for (const [r, c] of piece.cells) {
       const b = document.createElement('div');
       b.className = 'block';
-      b.style.background = piece.color;
+      b.style.backgroundColor = piece.color;
       b.style.gridRow = r + 1;
       b.style.gridColumn = c + 1;
       el.appendChild(b);
@@ -359,6 +617,8 @@
     });
   }
 
+  const goalLines = () => mode === 'level' ? LEVELS[level].lines : DAILY_LINES;
+
   function renderHud() {
     scoreEl.textContent = score;
     if (mode === 'endless') {
@@ -366,10 +626,17 @@
       bestEl.textContent = best;
       statusEl.textContent = 'Endlos-Modus';
     } else {
-      const goal = LEVELS[level].lines;
-      statusEl.textContent = `Level ${level + 1} · Linien ${Math.min(lines, goal)}/${goal}`;
+      const goal = goalLines();
+      const name = mode === 'daily' ? 'Tages-Challenge' : `Level ${level + 1}`;
+      statusEl.textContent = `${name} · Linien ${Math.min(lines, goal)}/${goal}`;
       $('goal-fill').style.width = Math.min(100, (lines / goal) * 100) + '%';
     }
+  }
+
+  function bumpScore() {
+    scoreEl.classList.remove('bump');
+    void scoreEl.offsetWidth;
+    scoreEl.classList.add('bump');
   }
 
   // ---------- Drag & drop ----------
@@ -386,6 +653,7 @@
     if (busy || over) return;
     e.preventDefault();
     sfx.pick();
+    justPlaced = new Set();
     const m = boardMetrics();
     const piece = pieces[index];
     const el = buildPieceEl(piece, m.cell, m.gap);
@@ -455,7 +723,9 @@
 
   // ---------- Game logic ----------
   function place(index, piece, row, col) {
+    const placedIdx = piece.cells.map(([r, c]) => (row + r) * SIZE + col + c);
     for (const [r, c] of piece.cells) grid[row + r][col + c] = piece.color;
+    justPlaced = new Set(placedIdx);
     pieces[index] = null;
     score += piece.cells.length;
 
@@ -465,6 +735,7 @@
     const cleared = fullRows.length + fullCols.length;
 
     renderBoard();
+    for (const i of placedIdx) { const [x, y] = cellCenter(i); burst(x, y, piece.color, 3, 2); }
 
     if (cleared > 0) {
       combo++;
@@ -472,13 +743,22 @@
       // More lines at once and longer streaks are worth disproportionately more.
       const gained = cleared * 10 * cleared * combo;
       score += gained;
-      flashCombo(cleared, combo, gained);
+      flashCombo(cleared, combo);
       sfx.clear(cleared, combo);
+      bumpScore();
 
       const toClear = new Set();
       fullRows.forEach(r => { for (let c = 0; c < SIZE; c++) toClear.add(r * SIZE + c); });
       fullCols.forEach(c => { for (let r = 0; r < SIZE; r++) toClear.add(r * SIZE + c); });
-      toClear.forEach(i => cellEls[i].classList.add('clearing'));
+      toClear.forEach(i => {
+        cellEls[i].classList.add('clearing');
+        const [x, y] = cellCenter(i);
+        burst(x, y, grid[Math.floor(i / SIZE)][i % SIZE], 7, 4 + cleared);
+      });
+      const [fx0, fy0] = cellCenter(placedIdx[0]);
+      floatText(`+${gained}`, fx0, fy0, 22 + Math.min(cleared * 4, 16));
+      if (cleared > 1 || combo > 2) shakeBoard();
+
       busy = true;
       setTimeout(() => {
         toClear.forEach(i => { grid[Math.floor(i / SIZE)][i % SIZE] = null; });
@@ -497,20 +777,25 @@
     if (pieces.every(p => !p)) dealPieces();
     renderBoard();
     renderTray();
-    if (mode === 'level' && lines >= LEVELS[level].lines) return winLevel();
+    if (mode !== 'endless' && lines >= goalLines()) return winRound();
     if (!pieces.some(p => p && fitsAnywhere(p.cells))) gameOver();
   }
 
+  const PRAISE = ['Super!', 'Klasse!', 'Wow!', 'Genial!', 'Mega!', 'Unglaublich!'];
   let comboTimer;
-  function flashCombo(cleared, streak, gained) {
+  function flashCombo(cleared, streak) {
     const parts = [];
-    if (cleared > 1) parts.push(`${cleared} Linien!`);
+    if (cleared > 1 || streak > 1) parts.push(PRAISE[Math.min(cleared + streak - 2, PRAISE.length - 1)]);
+    if (cleared > 1) parts.push(`${cleared} Linien`);
     if (streak > 1) parts.push(`Combo x${streak}`);
-    parts.push(`+${gained}`);
+    if (!parts.length) parts.push('Linie!');
     comboEl.textContent = parts.join('  ·  ');
     comboEl.style.opacity = 1;
+    comboEl.classList.remove('pop');
+    void comboEl.offsetWidth;
+    comboEl.classList.add('pop');
     clearTimeout(comboTimer);
-    comboTimer = setTimeout(() => { comboEl.style.opacity = 0; }, 1200);
+    comboTimer = setTimeout(() => { comboEl.style.opacity = 0; }, 1300);
   }
 
   function showDialog(id) {
@@ -521,22 +806,57 @@
   function gameOver() {
     over = true;
     sfx.gameOver();
-    $('over-text').textContent = mode === 'endless'
-      ? `Punkte: ${score}`
-      : `Level ${level + 1}: ${lines} von ${LEVELS[level].lines} Linien`;
+    const goalText = `${lines} von ${goalLines()} Linien`;
+    $('over-text').textContent =
+      mode === 'endless' ? `Punkte: ${score}` :
+      mode === 'daily' ? `Tages-Challenge: ${goalText}` :
+      `Level ${level + 1}: ${goalText}`;
     $('btn-revive').hidden = revived;
     setTimeout(() => showDialog('dlg-over'), 400);
   }
 
-  function winLevel() {
+  // 1 star for finishing, more for a high score relative to the goal.
+  function starsFor(points, goal) {
+    if (points >= goal * 40) return 3;
+    if (points >= goal * 25) return 2;
+    return 1;
+  }
+
+  function winRound() {
     over = true;
-    const unlocked = load('klotz-unlocked', 1);
-    if (level + 2 > unlocked) save('klotz-unlocked', Math.min(level + 2, LEVELS.length));
-    const last = level === LEVELS.length - 1;
-    $('win-title').textContent = last ? 'Alle Level geschafft!' : 'Level geschafft!';
-    $('win-text').textContent = `Level ${level + 1} mit ${score} Punkten`;
-    $('btn-next').hidden = last;
-    setTimeout(() => { sfx.win(); showDialog('dlg-win'); }, 400);
+    const stars = starsFor(score, goalLines());
+    $('win-streak').hidden = true;
+
+    if (mode === 'level') {
+      const unlocked = load('klotz-unlocked', 1);
+      if (level + 2 > unlocked) save('klotz-unlocked', Math.min(level + 2, LEVELS.length));
+      const allStars = load('klotz-stars', {});
+      allStars[level] = Math.max(allStars[level] || 0, stars);
+      save('klotz-stars', allStars);
+      const last = level === LEVELS.length - 1;
+      $('win-title').textContent = last ? 'Alle Level geschafft!' : 'Level geschafft!';
+      $('win-text').textContent = `Level ${level + 1} mit ${score} Punkten`;
+      $('btn-next').hidden = last;
+    } else {
+      const d = dailyState();
+      const today = todayKey();
+      if (d.last !== today) { d.streak += 1; d.last = today; }
+      d.stars = { [today]: Math.max(d.stars?.[today] || 0, stars) };
+      save('klotz-daily', d);
+      $('win-title').textContent = 'Tages-Challenge geschafft!';
+      $('win-text').textContent = `${score} Punkte. Morgen gibt es ein neues Feld.`;
+      $('win-streak').textContent = d.streak > 1 ? `🔥 ${d.streak} Tage in Folge` : '🔥 Deine erste Serie beginnt';
+      $('win-streak').hidden = false;
+      $('btn-next').hidden = true;
+    }
+
+    [...$('win-stars').children].forEach((s, i) => s.classList.toggle('on', i < stars));
+    setTimeout(() => {
+      sfx.win();
+      for (let i = 0; i < stars; i++) setTimeout(() => sfx.star(i), 600 + i * 250);
+      confetti();
+      showDialog('dlg-win');
+    }, 400);
   }
 
   // Second chance: wipe the middle four rows and deal a fresh hand.
@@ -551,18 +871,32 @@
     renderTray();
   }
 
+  // The daily board: a handful of stones placed from today's seed, never forming a full line.
+  function dailyLayout() {
+    const count = 8 + Math.floor(rand() * 7);
+    for (let n = 0; n < count; n++) {
+      const r = Math.floor(rand() * SIZE), c = Math.floor(rand() * SIZE);
+      grid[r][c] = STONE;
+      if (grid[r].every(Boolean) || grid.every(row => row[c])) grid[r][c] = null;
+    }
+  }
+
   function startGame(newMode, levelIndex = 0) {
     mode = newMode;
     level = levelIndex;
+    rand = mode === 'daily' ? seededRandom(hashString('klotz-' + todayKey())) : Math.random;
     grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
     if (mode === 'level') {
       LEVELS[level].map.forEach((line, r) => {
         [...line].forEach((ch, c) => { if (ch === '#') grid[r][c] = STONE; });
       });
+    } else if (mode === 'daily') {
+      dailyLayout();
     }
     score = 0; combo = 0; lines = 0; revived = false; busy = false; over = false;
+    justPlaced = new Set();
     best = load('klotz-best', 0);
-    $('goal').hidden = mode !== 'level';
+    $('goal').hidden = mode === 'endless';
     $('best-row').hidden = mode !== 'endless';
     overlay.classList.remove('show');
     dealPieces();
@@ -572,24 +906,35 @@
   }
 
   function openMenu() {
+    const d = dailyState();
+    const doneToday = d.last === todayKey();
+    const todayStars = d.stars?.[todayKey()] || 0;
+    $('daily-info').textContent = doneToday
+      ? `Heute geschafft ${'★'.repeat(todayStars)}${'☆'.repeat(3 - todayStars)} · 🔥 ${d.streak} ${d.streak === 1 ? 'Tag' : 'Tage'}`
+      : d.streak > 0 ? `Neues Feld wartet · 🔥 ${d.streak} ${d.streak === 1 ? 'Tag' : 'Tage'} Serie` : 'Jeden Tag ein neues Feld';
+
     const unlocked = load('klotz-unlocked', 1);
+    const allStars = load('klotz-stars', {});
     const gridEl = $('level-grid');
     gridEl.innerHTML = '';
     LEVELS.forEach((_, i) => {
       const b = document.createElement('button');
-      b.className = 'secondary' + (i + 1 < unlocked ? ' done' : '');
-      b.textContent = i + 1;
+      const s = allStars[i] || 0;
+      b.className = 'secondary';
       b.disabled = i + 1 > unlocked;
-      b.setAttribute('aria-label', `Level ${i + 1}`);
+      b.innerHTML = `${i + 1}<small>${s ? '★'.repeat(s) + '☆'.repeat(3 - s) : '&nbsp;'}</small>`;
+      b.setAttribute('aria-label', `Level ${i + 1}${s ? `, ${s} Sterne` : ''}`);
       b.addEventListener('click', () => { sfx.click(); startGame('level', i); });
       gridEl.appendChild(b);
     });
     showDialog('dlg-menu');
   }
 
+  $('btn-daily').addEventListener('click', () => { sfx.click(); startGame('daily'); });
   $('btn-endless').addEventListener('click', () => { sfx.click(); startGame('endless'); });
   $('btn-revive').addEventListener('click', () => { sfx.click(); revive(); });
   $('btn-retry').addEventListener('click', () => { sfx.click(); startGame(mode, level); });
+  $('btn-win-retry').addEventListener('click', () => { sfx.click(); startGame(mode, level); });
   $('btn-next').addEventListener('click', () => { sfx.click(); startGame('level', level + 1); });
   $('btn-over-menu').addEventListener('click', () => { sfx.click(); openMenu(); });
   $('btn-win-menu').addEventListener('click', () => { sfx.click(); openMenu(); });
@@ -597,11 +942,17 @@
   $('btn-sound').addEventListener('click', () => {
     muted = !muted;
     save('klotz-muted', muted);
-    renderSoundButton();
+    renderAudioButtons();
     sfx.click();
   });
+  $('btn-music').addEventListener('click', () => {
+    musicOn = !musicOn;
+    save('klotz-music', musicOn);
+    renderAudioButtons();
+    updateMusic();
+  });
 
-  renderSoundButton();
+  renderAudioButtons();
   startGame('endless');
   openMenu();
 })();
