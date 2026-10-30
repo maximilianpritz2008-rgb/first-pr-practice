@@ -174,6 +174,8 @@
   const STYLE = `
     .portrait { display: inline-block; line-height: 0; }
     .portrait svg { width: 100%; height: 100%; overflow: visible; }
+    .portrait img { width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; }
+    .portrait img.bob { transform-origin: 50% 100%; }
     .portrait .bob { transform-box: fill-box; transform-origin: 50% 100%; animation: portrait-breathe 3.2s ease-in-out infinite; animation-delay: var(--d, 0s); }
     .portrait .eye { transform-box: fill-box; transform-origin: 50% 50%; animation: portrait-blink 4.6s infinite; animation-delay: var(--d, 0s); }
     .portrait .glow { animation: portrait-glow 1.6s ease-in-out infinite; }
@@ -193,12 +195,20 @@
     styled = true;
   }
 
+  // Painted portraits made with SpriteCook from the SVGs above: img/characters/<id>-<mood>.png.
+  // There is no surprised picture yet, so that mood falls back to neutral.
+  const IMAGE_MOODS = ['neutral', 'happy'];
+  const imageSrc = (id, mood) => `img/characters/${id}-${IMAGE_MOODS.includes(mood) ? mood : 'neutral'}.png`;
+
   // Markup for one portrait. size is the rendered width in px (the height follows the 200:222 frame).
-  function html(id, mood = 'neutral', size = 120) {
+  // Pass { svg: true } for the hand-built SVG instead of the painted picture.
+  function html(id, mood = 'neutral', size = 120, { svg = false } = {}) {
     ensureStyle();
     const delay = (Math.random() * -4).toFixed(2);
-    return `<span class="portrait" data-character="${id}" style="width:${size}px;height:${Math.round(size * 1.11)}px;--d:${delay}s">` +
-      `<svg viewBox="0 0 200 222" aria-hidden="true"><g class="bob">${ART[id](mood)}</g></svg></span>`;
+    const art = svg
+      ? `<svg viewBox="0 0 200 222" aria-hidden="true"><g class="bob">${ART[id](mood)}</g></svg>`
+      : `<img class="bob" src="${imageSrc(id, mood)}" alt="" draggable="false">`;
+    return `<span class="portrait" data-character="${id}" style="width:${size}px;height:${Math.round(size * 1.11)}px;--d:${delay}s">${art}</span>`;
   }
 
   window.ArcheCharacters = { ids: Object.keys(ART), moods: ['neutral', 'happy', 'surprised'], names: NAMES, html };
